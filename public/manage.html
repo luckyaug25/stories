@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Manage Stories</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="responsive.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 3.2rem;
+    }
+
+    .story-item {
+      margin: 15px 0;
+      padding: 10px;
+      border: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1rem;
+    }
+
+    .story-item h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .story-item button {
+      padding: 5px 10px;
+      margin-left: 10px;
+      cursor: pointer;
+      background-color: #f44336;
+      color: white;
+      border: none;
+    }
+
+    .story-item a {
+      padding: 5px 10px;
+      margin-left: 10px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      text-decoration: none;
+    }
+
+    .story-item a:hover, .story-item button:hover {
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <h1>Manage Your Stories</h1>
+
+  <!-- List of Stories -->
+  <div id="storiesList"></div>
+
+  <script>
+    // Fetch stories from the backend (example: API call)
+    async function fetchStories() {
+      try {
+        const response = await fetch('/api/stories');
+        const stories = await response.json();
+        
+        // Display stories
+        const storiesList = document.getElementById('storiesList');
+        storiesList.innerHTML = '';
+
+        stories.forEach(story => {
+          const storyElement = document.createElement('div');
+          storyElement.classList.add('story-item');
+          storyElement.innerHTML = `
+            <h3>${story.title}</h3>
+            <div>
+              <a href="edit-story.html?id=${story.id}">Edit</a>
+              <button onclick="deleteStory(${story.id})">Delete</button>
+            </div>
+          `;
+          storiesList.appendChild(storyElement);
+        });
+      } catch (err) {
+        console.error("Error fetching stories:", err);
+      }
+    }
+
+    // Call fetchStories on page load
+    window.onload = fetchStories;
+
+    // Delete story
+    async function deleteStory(storyId) {
+      try {
+        const response = await fetch(`/api/stories/${storyId}`, { method: 'DELETE' });
+        if (response.ok) {
+          fetchStories(); // Reload the stories list after deletion
+        } else {
+          alert("Failed to delete the story.");
+        }
+      } catch (err) {
+        console.error("Error deleting story:", err);
+      }
+    }
+  </script>
+</body>
+</html>

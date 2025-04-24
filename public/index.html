@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>All Stories</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="responsive.css">
+</head>
+<body>
+  <h1>All Stories</h1>
+
+  <!-- Navigation Buttons -->
+  <div class="nav">
+    <a href="/write"><button>Write Story</button></a>
+    <a href="/manage"><button>Manage Stories</button></a>
+  </div>
+
+  <!-- Story List -->
+  <div id="story-list"></div>
+
+  <script>
+    fetch('/api/stories')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('story-list').innerHTML = data.map(s =>
+          `<h3>${s.title}</h3><a href="/read?id=${s.id}">Read More</a>`
+        ).join('<hr>');
+      });
+  </script>
+</body>
+</html>

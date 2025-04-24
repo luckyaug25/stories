@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Write Story</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="responsives.css">
+  <style>
+    /* Optional embedded CSS */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      justify-content: center;
+      align-items: center;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 400px;
+    }
+
+    .media-preview img,
+    .media-preview video,
+    iframe {
+      width: 100%;
+      display: block;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Write a New Story</h1>
+
+  <!-- Navigation -->
+  <div class="nav">
+    <a href="/"><button>Home</button></a>
+    <a href="/manage"><button>Manage Stories</button></a>
+  </div>
+
+  <!-- Form -->
+  <form id="storyForm">
+    <input type="text" id="title" placeholder="Title" required><br>
+    <textarea id="content" placeholder="Write your story here..." rows="10" required></textarea><br>
+    <div class="buttons">
+      <button type="button" onclick="openPopup()">➕ Insert Media</button>
+      <button type="submit">Post Story</button>
+    </div>
+  </form>
+
+  <!-- Popup Modal -->
+  <div id="mediaModal" class="modal">
+    <div class="modal-content">
+      <h3>Insert Image / Video / GIF</h3>
+      <input type="text" id="mediaURL" placeholder="Paste media link here">
+      <div id="mediaPreview" class="media-preview"></div>
+      <button type="button" onclick="insertMediaFromPopup()">Insert</button>
+      <button type="button" onclick="closePopup()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- JS Scripts -->
+  <script>
+    document.getElementById('storyForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const title = document.getElementById('title').value.trim();
+      const content = document.getElementById('content').value.trim();
+
+      if (!title || !content) {
+        alert("Title and content are required.");
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/stories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, content })
+        });
+
+        if (res.ok) {
+          window.location.href = '/';
+        } else {
+          alert("Failed to post story.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Error submitting story.");
+      }
+    });
+
+    function openPopup() {
+      document.getElementById("mediaModal").style.display = "flex";
+      document.getElementById("mediaURL").value = "";
+      document.getElementById("mediaPreview").innerHTML = "";
+    }
+
+    function closePopup() {
+      document.getElementById("mediaModal").style.display = "none";
+    }
+
+    document.getElementById("mediaURL").addEventListener("input", function () {
+      showPreview(); // Call showPreview on each input
+    });
+
+    function showPreview() {
+      const url = document.getElementById("mediaURL").value;
+      let previewHTML = "";
+
+      // Check if the URL is an image
+      if (url.match(/\.(jpeg|jpg|png|gif)$/i)) {
+        previewHTML = `<img src="${url}" alt="Preview">`;
+      }
+      // Check if the URL is a video
+      else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+        previewHTML = `<video autoplay muted loop><source src="${url}"></video>`;
+      }
+      // Check if the URL is a YouTube video
+      else if (url.includes("youtube.com") || url.includes("youtu.be")) {
+        const videoId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
+        previewHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+      } else {
+        previewHTML = "Unsupported media format.";
+      }
+
+      document.getElementById("mediaPreview").innerHTML = previewHTML;
+    }
+
+    function insertMediaFromPopup() {
+      const url = document.getElementById('mediaURL').value;
+      const textarea = document.getElementById('content');
+      if (!url) return;
+
+      let mediaTag = '';
+      if (url.match(/\.(jpeg|jpg|png|gif)$/i)) {
+        mediaTag = `<img src="${url}" style="display:block; width:100%; margin:5px 0;">`;
+      } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+        mediaTag = `<video autoplay loop muted src="${url}" controls style="display:block; width:100%; margin:5px 0;"></video>`;
+      } else {
+        alert("Unsupported media type!");
+        return;
+      }
+
+      insertAtCursor(textarea, `\n${mediaTag}\n`);
+      closePopup();
+    }
+
+    function insertAtCursor(textarea, text) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const before = textarea.value.substring(0, start);
+      const after = textarea.value.substring(end);
+      textarea.value = before + text + after;
+      textarea.selectionStart = textarea.selectionEnd = start + text.length;
+      textarea.focus();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edit Story</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="responsive.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    story-form{
+      width: 60%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    input, textarea, button {
+        width: 95%;
+        padding: 10px;
+        margin: 5px;
+        margin-bottom: 0px;
+        background: #2a2a2a;
+        border: 1px solid #444;
+        color: #e0e0e0;
+    }
+
+    .buttons{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+
+    .buttons button {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.8;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 5px;
+      width: 80%;
+      max-width: 600px;
+    }
+
+    #mediaPreview img, #mediaPreview video {
+      width: 100%;
+      max-height: 50vh;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+  <h1>Edit Story</h1>
+
+  <form id="editStoryForm" class="story-form">
+    <input type="text" id="title" placeholder="Story Title" required><br>
+    <textarea id="content" placeholder="Update your story here..." rows="10" required></textarea><br>
+    <div class="buttons">
+        <button type="button" onclick="openPopup()">➕ Insert Media</button>
+        <button type="submit">Update Story</button>
+    </div>
+  </form>
+
+  <!-- Popup Modal for inserting media -->
+  <div id="mediaModal" class="modal">
+    <div class="modal-content">
+      <h3>Insert Image / Video / GIF</h3>
+      <input type="text" id="mediaURL" placeholder="Paste media link here">
+      <div id="mediaPreview"></div>
+      <button type="button" onclick="insertMediaFromPopup()">Insert</button>
+      <button type="button" onclick="closePopup()">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    // Fetch story details based on ID
+    const storyId = new URLSearchParams(location.search).get('id');
+    
+    async function fetchStory() {
+      const response = await fetch(`/api/stories/${storyId}`);
+      const story = await response.json();
+      document.getElementById('title').value = story.title;
+      document.getElementById('content').value = story.content;
+    }
+
+    // Open the modal for inserting media
+    function openPopup() {
+      document.getElementById("mediaModal").style.display = "flex";
+      document.getElementById("mediaURL").value = "";
+      document.getElementById("mediaPreview").innerHTML = "";
+    }
+
+    // Close the popup
+    function closePopup() {
+      document.getElementById("mediaModal").style.display = "none";
+    }
+
+    // Show media preview based on URL
+    document.getElementById("mediaURL").addEventListener("input", function() {
+      const url = document.getElementById("mediaURL").value;
+      let previewHTML = "";
+
+      if (url.match(/\.(jpeg|jpg|png|gif)$/i)) {
+        previewHTML = `<img src="${url}" alt="Preview" />`;
+      } else if (url.match(/\.(mp4|webm)$/i)) {
+        previewHTML = `<video autoplay muted loop><source src="${url}"></video>`;
+      } else if (url.includes("youtube.com") || url.includes("youtu.be")) {
+        const videoId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
+        previewHTML = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+      }
+
+      document.getElementById("mediaPreview").innerHTML = previewHTML;
+    });
+
+    // Insert media tag into the content field
+    function insertMediaFromPopup() {
+      const url = document.getElementById('mediaURL').value;
+      const mediaPreview = document.getElementById('mediaPreview');
+      const contentField = document.getElementById('content');
+
+      if (!url) return;
+
+      let mediaTag = '';
+      if (url.match(/\.(jpeg|jpg|png|gif)$/i)) {
+        mediaTag = `<img src="${url}" style="width:100%; margin: 10px 0;">`;
+      } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+        mediaTag = `<video src="${url}" autoplay muted loop style="width:100%; margin: 10px 0;"></video>`;
+      } else {
+        alert("Unsupported media type!");
+        return;
+      }
+
+      // Insert at cursor position in textarea
+      const start = contentField.selectionStart;
+      const end = contentField.selectionEnd;
+      const textBefore = contentField.value.substring(0, start);
+      const textAfter = contentField.value.substring(end, contentField.value.length);
+
+      contentField.value = textBefore + mediaTag + textAfter;
+
+      closePopup(); // Close the modal after inserting
+    }
+
+    // Update story on form submission
+    document.getElementById('editStoryForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const updatedTitle = document.getElementById('title').value.trim();
+      const updatedContent = document.getElementById('content').value.trim();
+
+      if (!updatedTitle || !updatedContent) {
+        alert("Title and content are required.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/stories/${storyId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ title: updatedTitle, content: updatedContent })
+        });
+
+        if (res.ok) {
+          window.location.href = '/manage'; // Redirect to manage page after successful update
+        } else {
+          alert("Failed to update the story.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Error updating story.");
+      }
+    });
+
+    // Call the fetchStory function on page load to populate the story data
+    window.onload = fetchStory;
+  </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Read Story</title>
+    <link rel="stylesheet" href="read.css">
+</head>
+<body>
+  <div id="story"></div>
+  <script>
+    const id = new URLSearchParams(location.search).get('id');
+    fetch(`/api/stories/${id}`)
+      .then(res => res.json())
+      .then(story => {
+        document.getElementById('story').innerHTML = `
+          <h1>${story.title}</h1>
+          <p>${story.content}</p>
+        `;
+      });
+  </script>
+</body>
+</html>
