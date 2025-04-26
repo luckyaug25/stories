@@ -128,7 +128,7 @@
       const url = document.getElementById("mediaURL").value;
       let previewHTML = "";
 
-      if (url.match(/\.(jpeg|jpg|png|gif)$/i)) {
+      if (url.match(/\.(jpeg|jpg|png|gif|webp)$/i)) {
         previewHTML = `<img src="${url}" alt="Preview" />`;
       } else if (url.match(/\.(mp4|webm)$/i)) {
         previewHTML = `<video autoplay muted loop><source src="${url}"></video>`;
@@ -149,7 +149,7 @@
       if (!url) return;
 
       let mediaTag = '';
-      if (url.match(/\.(jpeg|jpg|png|gif)$/i)) {
+      if (url.match(/\.(jpeg|jpg|png|gif|webp)$/i)) {
         mediaTag = `<img src="${url}" style="width:100%; margin: 10px 0;">`;
       } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
         mediaTag = `<video src="${url}" autoplay muted loop style="width:100%; margin: 10px 0;"></video>`;
