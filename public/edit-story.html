@@ -1,114 +1,134 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edit Story</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="responsive.css">
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    /* Custom styles for the Inter font and general body styling */
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
-    h1 {
-      text-align: center;
-    }
-
-    story-form{
-      width: 60%;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    input, textarea, button {
-        width: 95%;
+    /* Base styles for form elements to override default Tailwind if needed */
+    .story-form input,
+    .story-form textarea {
+        background: #2a2a2a; /* Darker background for inputs */
+        border: 2px solid #444; /* 2px border for inputs */
+        color: #e0e0e0; /* Light text color */
         padding: 10px;
-        margin: 5px;
-        margin-bottom: 0px;
-        background: #2a2a2a;
-        border: 1px solid #444;
-        color: #e0e0e0;
-    }
-
-    .buttons{
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-    }
-
-    .buttons button {
-      background-color: #4CAF50;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:hover {
-      opacity: 0.8;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      justify-content: center;
-      align-items: center;
+        margin: 5px 0; /* Adjust margin for better spacing */
+        width: 100%; /* Full width within form container */
+        box-sizing: border-box; /* Include padding and border in the element's total width and height */
     }
 
     .modal-content {
       background-color: #1e1e1e;
       padding: 20px;
-      border-radius: 5px;
+      border: 2px solid #333; /* 2px border for modal */
       width: 80%;
       max-width: 600px;
+      box-sizing: border-box; /* Ensure padding and border are included in width */
     }
 
     #mediaPreview img, #mediaPreview video {
       width: 100%;
       max-height: 50vh;
       object-fit: contain;
+      border: 2px solid #444; /* Add border to media preview */
     }
   </style>
 </head>
-<body>
-  <h1>Edit Story</h1>
+<body class="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+  <div class="max-w-3xl w-full bg-gray-800 p-6 sm:p-8 md:p-10 border-2 border-gray-700 shadow-2xl transform transition-all duration-300 hover:scale-[1.01]">
+    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-8 text-center leading-tight">
+      Edit Story
+    </h1>
 
-  <form id="editStoryForm" class="story-form">
-    <input type="text" id="title" placeholder="Story Title" required><br>
-    <textarea id="content" placeholder="Update your story here..." rows="10" required></textarea><br>
-    <div class="buttons">
-        <button type="button" onclick="openPopup()">➕ Insert Media</button>
-        <button type="submit">Update Story</button>
-    </div>
-  </form>
+    <form id="editStoryForm" class="story-form flex flex-col gap-4">
+      <input type="text" id="title" placeholder="Story Title" required
+             class="p-3 bg-gray-700 text-gray-100 border-2 border-gray-600 focus:outline-none focus:border-blue-500 placeholder-gray-400">
+      <textarea id="content" placeholder="Update your story here..." rows="10" required
+                class="p-3 bg-gray-700 text-gray-100 border-2 border-gray-600 focus:outline-none focus:border-blue-500 placeholder-gray-400 resize-y"></textarea>
+      <div class="buttons flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mt-4">
+          <button type="button" onclick="openPopup()"
+                  class="w-full sm:w-auto bg-green-700 hover:bg-green-800 text-white font-bold py-3 px-8 border-2 border-green-600 shadow-lg transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-500 active:bg-green-900">
+              ➕ Insert Media
+          </button>
+          <button type="submit"
+                  class="w-full sm:w-auto bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-8 border-2 border-blue-600 shadow-lg transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500 active:bg-blue-900">
+              Update Story
+          </button>
+      </div>
+    </form>
+  </div>
 
-  <!-- Popup Modal for inserting media -->
-  <div id="mediaModal" class="modal">
-    <div class="modal-content">
-      <h3>Insert Image / Video / GIF</h3>
-      <input type="text" id="mediaURL" placeholder="Paste media link here">
-      <div id="mediaPreview"></div>
-      <button type="button" onclick="insertMediaFromPopup()">Insert</button>
-      <button type="button" onclick="closePopup()">Cancel</button>
+  <div id="mediaModal" class="modal fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center p-4 z-50 hidden">
+    <div class="modal-content bg-gray-800 p-6 shadow-xl w-full max-w-xl border-2 border-gray-700">
+      <h3 class="text-2xl font-semibold text-white mb-4">Insert Image / Video / GIF</h3>
+      <input type="text" id="mediaURL" placeholder="Paste media link here"
+             class="w-full p-3 mb-4 bg-gray-700 text-gray-100 border-2 border-gray-600 focus:outline-none focus:border-blue-500 placeholder-gray-400">
+      <div id="mediaPreview" class="mb-4 p-2 border-2 border-gray-600 bg-gray-900 flex justify-center items-center min-h-[100px]"></div>
+      <div class="flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4 mt-4">
+        <button type="button" onclick="insertMediaFromPopup()"
+                class="w-full sm:w-auto bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-6 border-2 border-blue-600 shadow-md transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500 active:bg-blue-900">
+            Insert
+        </button>
+        <button type="button" onclick="closePopup()"
+                class="w-full sm:w-auto bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-6 border-2 border-red-600 shadow-md transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-500 active:bg-red-900">
+            Cancel
+        </button>
+      </div>
     </div>
   </div>
 
   <script>
     // Fetch story details based on ID
     const storyId = new URLSearchParams(location.search).get('id');
-    
+
     async function fetchStory() {
-      const response = await fetch(`/api/stories/${storyId}`);
-      const story = await response.json();
-      document.getElementById('title').value = story.title;
-      document.getElementById('content').value = story.content;
+      try {
+        const response = await fetch(`/api/stories/${storyId}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const story = await response.json();
+        document.getElementById('title').value = story.title;
+        document.getElementById('content').value = story.content;
+      } catch (error) {
+        console.error('Failed to fetch story:', error);
+        // Display a user-friendly message instead of alert
+        showCustomMessage("Failed to load story. Please try again later.", "error");
+      }
+    }
+
+    // Custom message box function (replaces alert)
+    function showCustomMessage(message, type = "info") {
+        const existingMessage = document.getElementById('custom-message-box');
+        if (existingMessage) existingMessage.remove();
+
+        const messageBox = document.createElement('div');
+        messageBox.id = 'custom-message-box';
+        messageBox.className = `fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100] transition-transform duration-300 transform translate-x-0`;
+
+        if (type === "error") {
+            messageBox.classList.add('bg-red-600');
+        } else if (type === "success") {
+            messageBox.classList.add('bg-green-600');
+        } else {
+            messageBox.classList.add('bg-blue-600');
+        }
+
+        messageBox.textContent = message;
+        document.body.appendChild(messageBox);
+
+        setTimeout(() => {
+            messageBox.classList.add('translate-x-full');
+            messageBox.addEventListener('transitionend', () => messageBox.remove());
+        }, 3000);
     }
 
     // Open the modal for inserting media
@@ -125,16 +145,18 @@
 
     // Show media preview based on URL
     document.getElementById("mediaURL").addEventListener("input", function() {
-      const url = document.getElementById("mediaURL").value;
+      const url = this.value; // Use 'this' for the event listener target
       let previewHTML = "";
 
       if (url.match(/\.(jpeg|jpg|png|gif|webp)$/i)) {
-        previewHTML = `<img src="${url}" alt="Preview" />`;
+        previewHTML = `<img src="${url}" alt="Preview" class="max-w-full max-h-full object-contain border-2 border-gray-500">`;
       } else if (url.match(/\.(mp4|webm)$/i)) {
-        previewHTML = `<video autoplay muted loop><source src="${url}"></video>`;
-      } else if (url.includes("youtube.com") || url.includes("youtu.be")) {
+        previewHTML = `<video autoplay muted loop class="max-w-full max-h-full object-contain border-2 border-gray-500"><source src="${url}"></video>`;
+      } else if (url.includes("youtube.com/watch?v=") || url.includes("youtu.be/")) {
         const videoId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
-        previewHTML = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+        if (videoId) {
+          previewHTML = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="border-2 border-gray-500"></iframe>`;
+        }
       }
 
       document.getElementById("mediaPreview").innerHTML = previewHTML;
@@ -143,18 +165,28 @@
     // Insert media tag into the content field
     function insertMediaFromPopup() {
       const url = document.getElementById('mediaURL').value;
-      const mediaPreview = document.getElementById('mediaPreview');
       const contentField = document.getElementById('content');
 
-      if (!url) return;
+      if (!url) {
+        showCustomMessage("Please enter a media URL.", "error");
+        return;
+      }
 
       let mediaTag = '';
       if (url.match(/\.(jpeg|jpg|png|gif|webp)$/i)) {
-        mediaTag = `<img src="${url}" style="width:100%; margin: 10px 0;">`;
+        mediaTag = `<img src="${url}" style="width:100%; margin: 10px 0; border: 1px solid #555;">`;
       } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
-        mediaTag = `<video src="${url}" autoplay muted loop style="width:100%; margin: 10px 0;"></video>`;
+        mediaTag = `<video src="${url}" autoplay muted loop style="width:100%; margin: 10px 0; border: 1px solid #555;"></video>`;
+      } else if (url.includes("youtube.com/watch?v=") || url.includes("youtu.be/")) {
+        const videoId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
+        if (videoId) {
+            mediaTag = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%; margin: 10px 0; border: 1px solid #555;"></iframe>`;
+        } else {
+            showCustomMessage("Invalid YouTube URL.", "error");
+            return;
+        }
       } else {
-        alert("Unsupported media type!");
+        showCustomMessage("Unsupported media type! Please use image, video, or YouTube links.", "error");
         return;
       }
 
@@ -177,7 +209,7 @@
       const updatedContent = document.getElementById('content').value.trim();
 
       if (!updatedTitle || !updatedContent) {
-        alert("Title and content are required.");
+        showCustomMessage("Title and content are required.", "error");
         return;
       }
 
@@ -191,13 +223,16 @@
         });
 
         if (res.ok) {
-          window.location.href = '/manage'; // Redirect to manage page after successful update
+          showCustomMessage("Story updated successfully!", "success");
+          setTimeout(() => {
+            window.location.href = '/manage'; // Redirect to manage page after successful update
+          }, 1500); // Give time for message to be seen
         } else {
-          alert("Failed to update the story.");
+          showCustomMessage("Failed to update the story.", "error");
         }
       } catch (err) {
         console.error(err);
-        alert("Error updating story.");
+        showCustomMessage("Error updating story.", "error");
       }
     });
 

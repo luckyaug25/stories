@@ -1,21 +1,102 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Read Story</title>
-    <link rel="stylesheet" href="read.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the Inter font and general body styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Basic styling for embedded media to ensure responsiveness and dark theme compatibility */
+        #story img, #story video, #story iframe {
+            max-width: 100%;
+            height: auto;
+            display: block; /* Ensures images are block level for proper spacing */
+            margin: 1rem auto; /* Center images and add vertical spacing */
+            border: 2px solid #444; /* Dark theme border for media */
+        }
+    </style>
 </head>
-<body>
-  <div id="story"></div>
+<body class="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+  <div class="max-w-3xl w-full bg-gray-800 p-6 sm:p-8 md:p-10 border-2 border-gray-700 shadow-2xl transform transition-all duration-300 hover:scale-[1.01]">
+    <div id="story" class="space-y-6">
+        <p class="text-center text-gray-400 text-lg" id="loading-message">Loading story...</p>
+    </div>
+  </div>
+
+  <div id="custom-message-box" class="fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100] transition-transform duration-300 transform translate-x-full hidden"></div>
+
   <script>
-    const id = new URLSearchParams(location.search).get('id');
-    fetch(`/api/stories/${id}`)
-      .then(res => res.json())
-      .then(story => {
-        document.getElementById('story').innerHTML = `
-          <h1>${story.title}</h1>
-          <p>${story.content}</p>
+    // Function to display custom messages (replaces alert)
+    function showCustomMessage(message, type = "info") {
+        const messageBox = document.getElementById('custom-message-box');
+        if (!messageBox) return; // Exit if element not found
+
+        messageBox.textContent = message;
+        messageBox.className = `fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100] transition-transform duration-300 transform translate-x-0`;
+
+        if (type === "error") {
+            messageBox.classList.add('bg-red-600');
+        } else if (type === "success") {
+            messageBox.classList.add('bg-green-600');
+        } else {
+            messageBox.classList.add('bg-blue-600');
+        }
+        messageBox.classList.remove('hidden'); // Make sure it's visible
+
+        setTimeout(() => {
+            messageBox.classList.add('translate-x-full');
+            messageBox.addEventListener('transitionend', () => {
+                messageBox.classList.add('hidden'); // Hide after animation
+            }, { once: true }); // Ensure listener is removed after one use
+        }, 3000);
+    }
+
+    // Fetch story details based on ID from URL
+    const storyId = new URLSearchParams(location.search).get('id');
+
+    async function fetchStory() {
+      const storyDiv = document.getElementById('story');
+      const loadingMessage = document.getElementById('loading-message');
+
+      try {
+        // Show loading message
+        if (loadingMessage) {
+            loadingMessage.style.display = 'block';
+        }
+
+        const response = await fetch(`/api/stories/${storyId}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const story = await response.json();
+
+        // Hide loading message
+        if (loadingMessage) {
+            loadingMessage.style.display = 'none';
+        }
+
+        // Render the story content
+        storyDiv.innerHTML = `
+          <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4 text-center">${story.title}</h1>
+          <div class="prose prose-invert max-w-none text-gray-300 leading-relaxed text-lg">
+            ${story.content}
+          </div>
         `;
-      });
+      } catch (error) {
+        console.error('Failed to fetch story:', error);
+        storyDiv.innerHTML = '<p class="text-center text-red-400 text-lg">Failed to load story. Please try again later.</p>';
+        showCustomMessage("Failed to load story. Please try again later.", "error");
+      }
+    }
+
+    // Call the fetchStory function when the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', fetchStory);
   </script>
 </body>
 </html>
