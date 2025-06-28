@@ -1,87 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Stories</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Custom styles for the Inter font and general body styling */
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All Stories</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Anton&family=Boldonse&family=Chau+Philomene+One:ital@0;1&family=Iceland&family=Jaro:opsz@6..72&family=Lexend:wght@100..900&family=Marcellus&family=New+Rocker&family=Plaster&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Sansita:ital,wght@0,400;0,700;0,800;0,900;1,400;1,700;1,800;1,900&family=Teko:wght@300..700&family=Yatra+One&display=swap');
+
+    body {
+      font-family: "Lexend", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+  </style>
 </head>
 <body class="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
-    <div class="max-w-4xl w-full bg-gray-800 p-6 sm:p-8 md:p-10 border-2 border-gray-700 shadow-2xl transform transition-all duration-300 hover:scale-[1.01]">
-        <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-8 text-center leading-tight">
-            All Stories
-        </h1>
+  <div class="max-w-4xl w-full bg-gray-800 p-6 sm:p-8 md:p-10 border-2 border-gray-700 shadow-2xl transform transition-all duration-300">
+    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-8 text-center leading-tight">
+      All Stories
+    </h1>
 
-        <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-10">
-            <a href="/write" class="w-full sm:w-auto">
-                <button class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-8 border-2 border-blue-600 shadow-lg transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500 active:bg-blue-900">
-                    Write Story
-                </button>
-            </a>
-            <a href="/manage" class="w-full sm:w-auto">
-                <button class="w-full bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-3 px-8 border-2 border-indigo-600 shadow-lg transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-500 active:bg-indigo-900">
-                    Manage Stories
-                </button>
-            </a>
-        </div>
-
-        <div id="story-list" class="space-y-6">
-            <p class="text-center text-gray-400 text-lg" id="loading-message">Loading stories...</p>
-        </div>
+    <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-10">
+      <a href="/write" class="w-full sm:w-auto">
+        <button class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-8 border-2 border-blue-600 shadow-lg transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500 active:bg-blue-900">
+          Write Story
+        </button>
+      </a>
+      <a href="/manage" class="w-full sm:w-auto">
+        <button class="w-full bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-3 px-8 border-2 border-indigo-600 shadow-lg transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-500 active:bg-indigo-900">
+          Manage Stories
+        </button>
+      </a>
     </div>
 
-    <script>
-        // Function to fetch and display stories
-        async function fetchStories() {
-            const storyListDiv = document.getElementById('story-list');
-            const loadingMessage = document.getElementById('loading-message');
+    <div id="story-list" class="space-y-6">
+      <p class="text-center text-gray-400 text-lg" id="loading-message">Loading stories...</p>
+    </div>
+  </div>
 
-            try {
-                // Show loading message
-                if (loadingMessage) {
-                    loadingMessage.style.display = 'block';
-                }
+  <script>
+    const storyListDiv = document.getElementById('story-list');
+    const loadingMessage = document.getElementById('loading-message');
+    const storiesPerPage = 25;
+    let allStories = [];
+    let currentPage = 1;
 
-                const response = await fetch('/api/stories');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
+    async function fetchAllStories() {
+      try {
+        loadingMessage.style.display = 'block';
+        const response = await fetch('/api/stories');
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        allStories = await response.json();
+        loadingMessage.style.display = 'none';
+        renderStories(currentPage);
+      } catch (error) {
+        console.error('Failed to fetch stories:', error);
+        storyListDiv.innerHTML = '<p class="text-center text-red-400 text-lg">Failed to load stories. Please try again later.</p>';
+      }
+    }
 
-                // Hide loading message
-                if (loadingMessage) {
-                    loadingMessage.style.display = 'none';
-                }
+    function renderStories(page) {
+      storyListDiv.innerHTML = '';
+      const start = (page - 1) * storiesPerPage;
+      const end = page * storiesPerPage;
+      const storiesToShow = allStories.slice(start, end);
 
-                if (data.length === 0) {
-                    storyListDiv.innerHTML = '<p class="text-center text-gray-500 text-lg">No stories available yet. Start writing one!</p>';
-                } else {
-                    // Map through the data to create story cards
-                    storyListDiv.innerHTML = data.map(s => `
-                        <div class="bg-gray-700 p-6 shadow-md border-2 border-gray-600 hover:shadow-lg transition-shadow duration-200">
-                            <h3 class="text-2xl font-semibold text-white mb-2">${s.title}</h3>
-                            <a href="/read?id=${s.id}" class="inline-block text-blue-400 hover:text-blue-300 font-medium text-lg transition-colors duration-200">
-                                Read More &rarr;
-                            </a>
-                        </div>
-                    `).join(''); // No <hr> needed, the div styling provides separation
-                }
-            } catch (error) {
-                console.error('Failed to fetch stories:', error);
-                storyListDiv.innerHTML = '<p class="text-center text-red-400 text-lg">Failed to load stories. Please try again later.</p>';
-            }
-        }
+      if (storiesToShow.length === 0) {
+        storyListDiv.innerHTML = '<p class="text-center text-gray-500 text-lg">No stories available yet. Start writing one!</p>';
+        return;
+      }
 
-        // Call the fetchStories function when the DOM is fully loaded
-        document.addEventListener('DOMContentLoaded', fetchStories);
-    </script>
+      storiesToShow.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'bg-gray-700 p-6 shadow-md border-2 border-gray-600 hover:shadow-lg transition-shadow duration-200';
+
+        card.innerHTML = `
+          <h3 class="text-2xl font-semibold text-white mb-2">${s.title}</h3>
+          <a href="/read?id=${s.id}" class="inline-block text-blue-400 hover:text-blue-300 font-medium text-lg transition-colors duration-200">
+            Read More &rarr;
+          </a>
+        `;
+
+        storyListDiv.appendChild(card);
+      });
+
+      renderPaginationControls(page);
+    }
+
+    function renderPaginationControls(page) {
+      const totalPages = Math.ceil(allStories.length / storiesPerPage);
+      if (totalPages <= 1) return;
+
+      const paginationDiv = document.createElement('div');
+      paginationDiv.className = "flex justify-center items-center space-x-4 mt-8";
+
+      if (page > 1) {
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = '← Previous';
+        prevBtn.className = 'bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded';
+        prevBtn.onclick = () => {
+          currentPage--;
+          renderStories(currentPage);
+        };
+        paginationDiv.appendChild(prevBtn);
+      }
+
+      const pageInfo = document.createElement('span');
+      pageInfo.className = 'text-gray-400';
+      pageInfo.textContent = `Page ${page} of ${totalPages}`;
+      paginationDiv.appendChild(pageInfo);
+
+      if (page < totalPages) {
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = 'Next →';
+        nextBtn.className = 'bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded';
+        nextBtn.onclick = () => {
+          currentPage++;
+          renderStories(currentPage);
+        };
+        paginationDiv.appendChild(nextBtn);
+      }
+
+      storyListDiv.appendChild(paginationDiv);
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchAllStories);
+  </script>
 </body>
 </html>
