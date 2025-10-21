@@ -11,10 +11,10 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
       background-color: #0a0a0a;
       color: white;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     .story-form input,
@@ -28,12 +28,12 @@
       box-sizing: border-box;
     }
 
-    #mediaPreview img,
-    #mediaPreview video,
-    #mediaPreview iframe {
-      width: 100%;
-      max-height: 50vh;
-      object-fit: contain;
+    /* Match write page media style */
+    #mediaPreview img, #mediaPreview video, #mediaPreview iframe {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 1rem auto;
       border: 2px solid #222;
     }
 
@@ -82,21 +82,19 @@
   </div>
 
   <!-- Media Modal -->
-  <div id="mediaModal" class="modal fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center p-4 z-50 hidden">
-    <div class="modal-content">
+  <div id="mediaModal" class="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center p-4 z-50 hidden">
+    <div class="bg-black p-6 shadow-xl w-full max-w-xl border-2 border-gray-800 overflow-y-auto max-h-[90vh]">
       <h3 class="text-2xl font-semibold text-white mb-4">Insert Image / Video / GIF</h3>
-      <input type="text" id="mediaURL" placeholder="Paste media link here">
-      <div id="mediaPreview" class="mb-4 p-2 bg-black min-h-[100px] flex justify-center items-center"></div>
+      <input type="text" id="mediaURL" placeholder="Paste media link here" class="w-full p-3 mb-4 bg-black text-white border-2 border-gray-700">
+      <div id="mediaPreview" class="mb-4 p-2 border-2 border-gray-700 flex justify-center items-center"></div>
       <div class="flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4 mt-4">
-        <button type="button" onclick="insertMediaFromPopup()" class="btn-blue w-full sm:w-auto py-2 px-6 font-bold">
-          Insert
-        </button>
-        <button type="button" onclick="closePopup()" class="btn-red w-full sm:w-auto py-2 px-6 font-bold">
-          Cancel
-        </button>
+        <button type="button" onclick="insertMediaFromPopup()" class="btn-blue w-full sm:w-auto py-2 px-6 font-bold">Insert</button>
+        <button type="button" onclick="closePopup()" class="btn-red w-full sm:w-auto py-2 px-6 font-bold">Cancel</button>
       </div>
     </div>
   </div>
+
+  <div id="custom-message-box" class="fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100] hidden"></div>
 
   <script defer>
     const storyId = new URLSearchParams(location.search).get('id');
@@ -115,21 +113,14 @@
     }
 
     function showCustomMessage(message, type = "info") {
-      const existing = document.getElementById('custom-message-box');
-      if (existing) existing.remove();
-
-      const box = document.createElement('div');
-      box.id = 'custom-message-box';
-      box.className = `fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100]`;
-      box.textContent = message;
-      if (type === "error") box.classList.add('btn-red');
-      else if (type === "success") box.classList.add('btn-green');
-      else box.classList.add('btn-blue');
-      document.body.appendChild(box);
-
-      setTimeout(() => {
-        box.remove();
-      }, 3000);
+      const messageBox = document.getElementById('custom-message-box');
+      messageBox.textContent = message;
+      messageBox.className = `fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100]`;
+      if (type === "error") messageBox.classList.add('btn-red');
+      else if (type === "success") messageBox.classList.add('btn-green');
+      else messageBox.classList.add('btn-blue');
+      messageBox.classList.remove('hidden');
+      setTimeout(() => messageBox.classList.add('hidden'), 3000);
     }
 
     function openPopup() {
@@ -142,47 +133,67 @@
       document.getElementById("mediaModal").style.display = "none";
     }
 
-    document.getElementById("mediaURL").addEventListener("input", function () {
-      const url = this.value;
+    // ✅ Updated preview style (same as write page)
+    document.getElementById("mediaURL").addEventListener("input", function() {
+      const url = this.value.trim();
       let previewHTML = "";
 
-      if (url.match(/\.(jpeg|jpg|png|gif|webp)$/i)) {
-        previewHTML = `<img src="${url}" alt="Preview">`;
+      if (!url) return;
+
+      if (url.includes("youtube.com/watch?v=")) {
+        const videoId = url.split('v=')[1]?.split('&')[0];
+        if (videoId)
+          previewHTML = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen class="border-2 border-gray-700"></iframe>`;
       } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
-        previewHTML = `<video autoplay muted loop><source src="${url}"></video>`;
-      } else if (url.includes("youtube.com/watch?v=") || url.includes("youtu.be/")) {
-        const videoId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
-        if (videoId) previewHTML = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+        previewHTML = `<video autoplay muted loop controls class="max-w-full max-h-full object-contain border-2 border-gray-700"><source src="${url}"></video>`;
+      } else {
+        previewHTML = `<img src="${url}" alt="Preview" class="max-w-full max-h-full object-contain border-2 border-gray-700">`;
       }
 
       document.getElementById("mediaPreview").innerHTML = previewHTML;
     });
 
+    // ✅ Updated insertion style (same as write page)
     function insertMediaFromPopup() {
-      const url = document.getElementById('mediaURL').value;
-      const contentField = document.getElementById('content');
-      if (!url) return showCustomMessage("Please enter a media URL.", "error");
+      const url = document.getElementById('mediaURL').value.trim();
+      const textarea = document.getElementById('content');
+
+      if (!url) {
+        showCustomMessage("Please enter a media URL.", "error");
+        return;
+      }
 
       let mediaTag = '';
-      if (url.match(/\.(jpeg|jpg|png|gif|webp)$/i)) mediaTag = `<img src="${url}" style="width:100%; margin:10px 0;">`;
-      else if (url.match(/\.(mp4|webm|ogg)$/i)) mediaTag = `<video src="${url}" autoplay muted loop style="width:100%; margin:10px 0;"></video>`;
-      else if (url.includes("youtube.com/watch?v=") || url.includes("youtu.be/")) {
-        const videoId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
-        if (videoId) mediaTag = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="margin:10px 0;"></iframe>`;
-        else return showCustomMessage("Invalid YouTube URL.", "error");
-      } else return showCustomMessage("Unsupported media type!", "error");
 
-      const start = contentField.selectionStart;
-      const end = contentField.selectionEnd;
-      contentField.value = contentField.value.substring(0, start) + mediaTag + contentField.value.substring(end);
+      if (url.includes("youtube.com/watch?v=")) {
+        const videoId = url.split('v=')[1]?.split('&')[0];
+        if (videoId)
+          mediaTag = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="display:block; width:100%; margin:10px 0; border: 2px solid #222;"></iframe>`;
+        else return showCustomMessage("Invalid YouTube URL.", "error");
+      } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+        mediaTag = `<video autoplay loop muted controls src="${url}" style="display:block; width:100%; margin:10px 0; border: 2px solid #222;"></video>`;
+      } else {
+        mediaTag = `<img src="${url}" style="display:block; width:100%; margin:10px 0; border: 2px solid #222;">`;
+      }
+
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const before = textarea.value.substring(0, start);
+      const after = textarea.value.substring(end);
+      textarea.value = before + '\n' + mediaTag + '\n' + after;
+      textarea.selectionStart = textarea.selectionEnd = start + mediaTag.length + 2;
+      textarea.focus();
+
       closePopup();
     }
 
-    document.getElementById('editStoryForm').addEventListener('submit', async function (e) {
+    document.getElementById('editStoryForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const updatedTitle = document.getElementById('title').value.trim();
       const updatedContent = document.getElementById('content').value.trim();
-      if (!updatedTitle || !updatedContent) return showCustomMessage("Title and content are required.", "error");
+
+      if (!updatedTitle || !updatedContent)
+        return showCustomMessage("Title and content are required.", "error");
 
       try {
         const res = await fetch(`/api/stories/${storyId}`, {
@@ -190,6 +201,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title: updatedTitle, content: updatedContent })
         });
+
         if (res.ok) {
           showCustomMessage("Story updated successfully!", "success");
           setTimeout(() => window.location.href = '/manage', 1500);
