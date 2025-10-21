@@ -11,9 +11,10 @@
     @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
     body {
       font-family: "Lexend", sans-serif;
+      background-color: #0a0a0a;
+      color: white;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      background-color: #0a0a0a; /* deep black background */
     }
     #story img, #story video, #story iframe {
       max-width: 100%;
@@ -22,12 +23,21 @@
       margin: 1rem auto;
       border: 2px solid #444;
     }
-    .prose > * {
-      margin-left: 0 !important;
-      margin-right: 0 !important;
-    }
     #story {
-      padding-bottom: 80px; /* space for fixed pagination */
+      padding-bottom: 80px;
+    }
+
+    /* 👇 Uniform paragraph styling */
+    .story-content p {
+      margin-top: 1.2rem;
+      margin-bottom: 1.2rem;
+      line-height: 1.8;
+      text-align: justify;
+      white-space: pre-line; /* preserves line breaks */
+    }
+
+    .story-content {
+      word-wrap: break-word;
     }
   </style>
 </head>
@@ -39,7 +49,7 @@
     </div>
   </div>
 
-  <!-- Pagination Controls (Fixed Bottom) -->
+  <!-- Pagination Controls -->
   <div id="pagination-controls" class="fixed bottom-0 left-0 w-full bg-black border-t border-gray-800 p-4 flex justify-between items-center z-50 hidden">
     <button id="prev-page" class="bg-blue-700 text-white px-4 py-2 border-2 border-blue-600 font-bold disabled:opacity-50">Previous</button>
     <span id="page-info" class="text-gray-400 text-sm"></span>
@@ -84,18 +94,21 @@
 
         if (loadingMessage) loadingMessage.style.display = 'none';
 
-        // Split story content into pages
-        const content = story.content;
+        // Normalize content spacing 👇
+        const normalizedContent = story.content
+          .replace(/\r\n/g, "\n") // normalize line breaks
+          .replace(/\n{3,}/g, "\n\n") // remove extra empty lines
+          .split("\n\n") // split paragraphs
+          .map(p => `<p>${p.trim()}</p>`) // wrap in <p>
+          .join("");
+
         const maxCharsPerPage = 10000;
-        for (let i = 0; i < content.length; i += maxCharsPerPage) {
-          storyPages.push(content.slice(i, i + maxCharsPerPage));
+        for (let i = 0; i < normalizedContent.length; i += maxCharsPerPage) {
+          storyPages.push(normalizedContent.slice(i, i + maxCharsPerPage));
         }
 
         renderPage(0, story.title);
-
-        if (storyPages.length > 1) {
-          pagination.classList.remove('hidden');
-        }
+        if (storyPages.length > 1) pagination.classList.remove('hidden');
       } catch (error) {
         console.error('Failed to fetch story:', error);
         storyDiv.innerHTML = '<p class="text-center text-red-400 text-lg">Failed to load story. Please try again later.</p>';
@@ -111,7 +124,7 @@
 
       storyDiv.innerHTML = `
         <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4 text-center">${title}</h1>
-        <div class="prose prose-invert max-w-none text-gray-300 leading-relaxed text-lg">
+        <div class="story-content text-gray-300 text-lg leading-relaxed">
           ${storyPages[pageIndex]}
         </div>
       `;
