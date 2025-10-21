@@ -20,11 +20,20 @@
       margin: 1rem auto;
       border: 2px solid #444;
     }
+    /* Remove prose horizontal margins */
+    .prose > * {
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+    }
+    /* Add bottom padding so content isn't hidden behind fixed pagination */
+    #story {
+      padding-bottom: 80px; /* adjust to height of pagination buttons */
+    }
   </style>
 </head>
-<body class="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center justify-start p-4 sm:p-6 lg:p-8">
+<body class="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center justify-start p-0 sm:p-6 lg:p-8">
 
-  <div class="max-w-3xl w-full bg-gray-800 p-6 md:p-8 border-2 border-gray-700 shadow-2xl transition-all duration-300">
+  <div class="max-w-3xl w-full bg-gray-800 p-2 md:p-2 border-2 border-gray-700 shadow-2xl transition-all duration-300">
     <div id="story" class="space-y-6">
       <p class="text-center text-gray-400 text-lg" id="loading-message">Loading story...</p>
     </div>
@@ -40,7 +49,6 @@
   <div id="custom-message-box" class="fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100] transition-transform duration-300 transform translate-x-full hidden"></div>
 
   <script>
-    // Custom alert replacement
     function showCustomMessage(message, type = "info") {
       const messageBox = document.getElementById('custom-message-box');
       if (!messageBox) return;
@@ -78,15 +86,13 @@
 
         // Split story content into pages
         const content = story.content;
-        const maxCharsPerPage = 10000; // Adjust as needed
+        const maxCharsPerPage = 10000;
         for (let i = 0; i < content.length; i += maxCharsPerPage) {
           storyPages.push(content.slice(i, i + maxCharsPerPage));
         }
 
-        // Render the first page
         renderPage(0, story.title);
 
-        // Show pagination if multiple pages
         if (storyPages.length > 1) {
           pagination.classList.remove('hidden');
         }
@@ -114,7 +120,7 @@
       prevBtn.disabled = pageIndex === 0;
       nextBtn.disabled = pageIndex === storyPages.length - 1;
 
-      // Scroll to top of story
+      // Scroll to top of story container
       storyDiv.scrollIntoView({ behavior: 'smooth' });
     }
 
