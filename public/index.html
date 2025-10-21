@@ -7,34 +7,38 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" type="image/x-icon" href="Logo.png">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Anton&family=Boldonse&family=Chau+Philomene+One:ital@0;1&family=Iceland&family=Jaro:opsz@6..72&family=Lexend:wght@100..900&family=Marcellus&family=New+Rocker&family=Plaster&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Sansita:ital,wght@0,400;0,700;0,800;0,900;1,400;1,700;1,800;1,900&family=Teko:wght@300..700&family=Yatra+One&display=swap');
-
+    @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
     body {
       font-family: "Lexend", sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      background-color: #0a0a0a; /* deep black background */
     }
   </style>
 </head>
-<body class="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
-  <div class="max-w-4xl w-full bg-gray-800 p-6 sm:p-8 md:p-10 border-2 border-gray-700 shadow-2xl transform transition-all duration-300">
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-8 text-center leading-tight">
+<body class="min-h-screen flex flex-col items-center justify-start p-4 sm:p-6 lg:p-8 text-white">
+
+  <!-- Main container -->
+  <div class="max-w-5xl w-full bg-black p-6 sm:p-8 md:p-10 border border-gray-800 shadow-2xl">
+    <h1 class="text-5xl sm:text-6xl font-extrabold mb-10 text-center leading-tight tracking-wide text-white">
       All Stories
     </h1>
 
-    <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-10">
+    <!-- Action buttons -->
+    <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-12">
       <a href="/write" class="w-full sm:w-auto">
-        <button class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-8 border-2 border-blue-600 shadow-lg transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500 active:bg-blue-900">
+        <button class="w-full bg-blue-700 text-white font-bold py-3 px-8 border-2 border-blue-600 shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-500">
           Write Story
         </button>
       </a>
       <a href="/manage" class="w-full sm:w-auto">
-        <button class="w-full bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-3 px-8 border-2 border-indigo-600 shadow-lg transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-500 active:bg-indigo-900">
+        <button class="w-full bg-green-700 text-white font-bold py-3 px-8 border-2 border-green-600 shadow-lg focus:outline-none focus:ring-4 focus:ring-green-500">
           Manage Stories
         </button>
       </a>
     </div>
 
+    <!-- Story list -->
     <div id="story-list" class="space-y-6">
       <p class="text-center text-gray-400 text-lg" id="loading-message">Loading stories...</p>
     </div>
@@ -57,7 +61,7 @@
         renderStories(currentPage);
       } catch (error) {
         console.error('Failed to fetch stories:', error);
-        storyListDiv.innerHTML = '<p class="text-center text-red-400 text-lg">Failed to load stories. Please try again later.</p>';
+        storyListDiv.innerHTML = '<p class="text-center text-red-500 text-lg">Failed to load stories. Please try again later.</p>';
       }
     }
 
@@ -74,15 +78,14 @@
 
       storiesToShow.forEach(s => {
         const card = document.createElement('div');
-        card.className = 'bg-gray-700 p-6 shadow-md border-2 border-gray-600 hover:shadow-lg transition-shadow duration-200';
+        card.className = 'bg-black p-6 border border-gray-800 shadow-md'; // Black container, no border radius, no hover
 
         card.innerHTML = `
-          <h3 class="text-2xl font-semibold text-white mb-2">${s.title}</h3>
-          <a href="/read?id=${s.id}" class="inline-block text-blue-400 hover:text-blue-300 font-medium text-lg transition-colors duration-200">
+          <h3 class="text-2xl font-semibold text-white mb-3">${s.title}</h3>
+          <a href="/read?id=${s.id}" class="inline-block text-blue-400 font-medium text-lg">
             Read More &rarr;
           </a>
         `;
-
         storyListDiv.appendChild(card);
       });
 
@@ -94,12 +97,12 @@
       if (totalPages <= 1) return;
 
       const paginationDiv = document.createElement('div');
-      paginationDiv.className = "flex justify-center items-center space-x-4 mt-8";
+      paginationDiv.className = "flex justify-center items-center space-x-4 mt-10";
 
       if (page > 1) {
         const prevBtn = document.createElement('button');
         prevBtn.textContent = '← Previous';
-        prevBtn.className = 'bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded';
+        prevBtn.className = 'bg-blue-700 text-white font-medium py-2 px-5 border-2 border-blue-600 shadow-md';
         prevBtn.onclick = () => {
           currentPage--;
           renderStories(currentPage);
@@ -108,14 +111,14 @@
       }
 
       const pageInfo = document.createElement('span');
-      pageInfo.className = 'text-gray-400';
+      pageInfo.className = 'text-gray-400 font-medium';
       pageInfo.textContent = `Page ${page} of ${totalPages}`;
       paginationDiv.appendChild(pageInfo);
 
       if (page < totalPages) {
         const nextBtn = document.createElement('button');
         nextBtn.textContent = 'Next →';
-        nextBtn.className = 'bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded';
+        nextBtn.className = 'bg-green-700 text-white font-medium py-2 px-5 border-2 border-green-600 shadow-md';
         nextBtn.onclick = () => {
           currentPage++;
           renderStories(currentPage);

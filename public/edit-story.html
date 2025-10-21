@@ -12,56 +12,68 @@
       font-family: 'Inter', sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      background-color: #0a0a0a;
+      color: white;
     }
 
     .story-form input,
     .story-form textarea {
-      background: #2a2a2a;
-      border: 2px solid #444;
-      color: #e0e0e0;
+      background: #000;
+      border: 2px solid #222;
+      color: #fff;
       padding: 10px;
       margin: 5px 0;
       width: 100%;
       box-sizing: border-box;
     }
 
+    #mediaPreview img,
+    #mediaPreview video,
+    #mediaPreview iframe {
+      width: 100%;
+      max-height: 50vh;
+      object-fit: contain;
+      border: 2px solid #222;
+    }
+
     .modal-content {
-      background-color: #1e1e1e;
+      background-color: #000;
       padding: 20px;
-      border: 2px solid #333;
+      border: 2px solid #222;
       width: 80%;
       max-width: 600px;
       box-sizing: border-box;
     }
 
-    #mediaPreview img,
-    #mediaPreview video {
-      width: 100%;
-      max-height: 50vh;
-      object-fit: contain;
-      border: 2px solid #444;
+    /* Remove hover & border-radius globally */
+    button, a {
+      border-radius: 0 !important;
+      transition: none !important;
     }
+
+    /* Buttons colors */
+    .btn-blue { background-color: #007bff; border: 2px solid #007bff; color: white; }
+    .btn-green { background-color: #00a65a; border: 2px solid #00a65a; color: white; }
+    .btn-red { background-color: #d9534f; border: 2px solid #d9534f; color: white; }
   </style>
 </head>
 
-<body class="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
-  <div class="max-w-3xl w-full bg-gray-800 p-6 sm:p-8 md:p-10 border-2 border-gray-700 shadow-2xl transition-all duration-300">
+<body class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+
+  <div class="max-w-3xl w-full bg-black p-6 border-2 border-gray-800 shadow-2xl">
     <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-8 text-center leading-tight">
       Edit Story
     </h1>
 
     <form id="editStoryForm" class="story-form flex flex-col gap-4">
-      <input type="text" id="title" placeholder="Story Title" required
-             class="p-3 bg-gray-700 text-gray-100 border-2 border-gray-600 focus:outline-none focus:border-blue-500 placeholder-gray-400">
-      <textarea id="content" placeholder="Update your story here..." rows="10" required
-                class="p-3 bg-gray-700 text-gray-100 border-2 border-gray-600 focus:outline-none focus:border-blue-500 placeholder-gray-400 resize-y"></textarea>
+      <input type="text" id="title" placeholder="Story Title" required>
+      <textarea id="content" placeholder="Update your story here..." rows="10" required class="resize-y"></textarea>
+      
       <div class="buttons flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mt-4">
-        <button type="button" onclick="openPopup()"
-                class="w-full sm:w-auto bg-green-700 hover:bg-green-800 text-white font-bold py-3 px-8 border-2 border-green-600 shadow-lg transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-500 active:bg-green-900">
+        <button type="button" onclick="openPopup()" class="btn-green w-full sm:w-auto py-3 px-8 font-bold">
           ➕ Insert Media
         </button>
-        <button type="submit"
-                class="w-full sm:w-auto bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-8 border-2 border-blue-600 shadow-lg transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500 active:bg-blue-900">
+        <button type="submit" class="btn-blue w-full sm:w-auto py-3 px-8 font-bold">
           Update Story
         </button>
       </div>
@@ -70,25 +82,21 @@
 
   <!-- Media Modal -->
   <div id="mediaModal" class="modal fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center p-4 z-50 hidden">
-    <div class="modal-content bg-gray-800 p-6 shadow-xl w-full max-w-xl border-2 border-gray-700">
+    <div class="modal-content">
       <h3 class="text-2xl font-semibold text-white mb-4">Insert Image / Video / GIF</h3>
-      <input type="text" id="mediaURL" placeholder="Paste media link here"
-             class="w-full p-3 mb-4 bg-gray-700 text-gray-100 border-2 border-gray-600 focus:outline-none focus:border-blue-500 placeholder-gray-400">
-      <div id="mediaPreview" class="mb-4 p-2 border-2 border-gray-600 bg-gray-900 flex justify-center items-center min-h-[100px]"></div>
+      <input type="text" id="mediaURL" placeholder="Paste media link here">
+      <div id="mediaPreview" class="mb-4 p-2 bg-black min-h-[100px] flex justify-center items-center"></div>
       <div class="flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4 mt-4">
-        <button type="button" onclick="insertMediaFromPopup()"
-                class="w-full sm:w-auto bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-6 border-2 border-blue-600 shadow-md transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500 active:bg-blue-900">
+        <button type="button" onclick="insertMediaFromPopup()" class="btn-blue w-full sm:w-auto py-2 px-6 font-bold">
           Insert
         </button>
-        <button type="button" onclick="closePopup()"
-                class="w-full sm:w-auto bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-6 border-2 border-red-600 shadow-md transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-500 active:bg-red-900">
+        <button type="button" onclick="closePopup()" class="btn-red w-full sm:w-auto py-2 px-6 font-bold">
           Cancel
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Script block -->
   <script defer>
     const storyId = new URLSearchParams(location.search).get('id');
 
@@ -111,16 +119,15 @@
 
       const box = document.createElement('div');
       box.id = 'custom-message-box';
-      box.className = `fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100] transition-transform duration-300`;
+      box.className = `fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100]`;
       box.textContent = message;
-      if (type === "error") box.classList.add('bg-red-600');
-      else if (type === "success") box.classList.add('bg-green-600');
-      else box.classList.add('bg-blue-600');
+      if (type === "error") box.classList.add('btn-red');
+      else if (type === "success") box.classList.add('btn-green');
+      else box.classList.add('btn-blue');
       document.body.appendChild(box);
 
       setTimeout(() => {
-        box.classList.add('translate-x-full');
-        box.addEventListener('transitionend', () => box.remove());
+        box.remove();
       }, 3000);
     }
 
@@ -138,15 +145,13 @@
       const url = this.value;
       let previewHTML = "";
 
-      if (url.match(/\.(jpeg|jpg|png|gif|webp)(\?.*)?$/i)) {
+      if (url.match(/\.(jpeg|jpg|png|gif|webp)$/i)) {
         previewHTML = `<img src="${url}" alt="Preview">`;
-      } else if (url.match(/\.(mp4|webm|ogg)(\?.*)?$/i)) {
+      } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
         previewHTML = `<video autoplay muted loop><source src="${url}"></video>`;
       } else if (url.includes("youtube.com/watch?v=") || url.includes("youtu.be/")) {
         const videoId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
-        if (videoId) {
-          previewHTML = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-        }
+        if (videoId) previewHTML = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
       }
 
       document.getElementById("mediaPreview").innerHTML = previewHTML;
@@ -158,18 +163,13 @@
       if (!url) return showCustomMessage("Please enter a media URL.", "error");
 
       let mediaTag = '';
-      if (url.match(/\.(jpeg|jpg|png|gif|webp)(\?.*)?$/i)) {
-        mediaTag = `<img src="${url}" style="width:100%; margin:10px 0;">`;
-      } else if (url.match(/\.(mp4|webm|ogg)(\?.*)?$/i)) {
-        mediaTag = `<video src="${url}" autoplay muted loop style="width:100%; margin:10px 0;"></video>`;
-      } else if (url.includes("youtube.com/watch?v=") || url.includes("youtu.be/")) {
+      if (url.match(/\.(jpeg|jpg|png|gif|webp)$/i)) mediaTag = `<img src="${url}" style="width:100%; margin:10px 0;">`;
+      else if (url.match(/\.(mp4|webm|ogg)$/i)) mediaTag = `<video src="${url}" autoplay muted loop style="width:100%; margin:10px 0;"></video>`;
+      else if (url.includes("youtube.com/watch?v=") || url.includes("youtu.be/")) {
         const videoId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
-        if (videoId) {
-          mediaTag = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="margin:10px 0;"></iframe>`;
-        } else return showCustomMessage("Invalid YouTube URL.", "error");
-      } else {
-        return showCustomMessage("Unsupported media type!", "error");
-      }
+        if (videoId) mediaTag = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="margin:10px 0;"></iframe>`;
+        else return showCustomMessage("Invalid YouTube URL.", "error");
+      } else return showCustomMessage("Unsupported media type!", "error");
 
       const start = contentField.selectionStart;
       const end = contentField.selectionEnd;

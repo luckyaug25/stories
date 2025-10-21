@@ -12,6 +12,7 @@
       font-family: "Lexend", sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      background-color: #0a0a0a; /* deep black background */
     }
     #story img, #story video, #story iframe {
       max-width: 100%;
@@ -20,30 +21,28 @@
       margin: 1rem auto;
       border: 2px solid #444;
     }
-    /* Remove prose horizontal margins */
     .prose > * {
       margin-left: 0 !important;
       margin-right: 0 !important;
     }
-    /* Add bottom padding so content isn't hidden behind fixed pagination */
     #story {
-      padding-bottom: 80px; /* adjust to height of pagination buttons */
+      padding-bottom: 80px; /* space for fixed pagination */
     }
   </style>
 </head>
-<body class="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center justify-start p-0 sm:p-6 lg:p-8">
+<body class="min-h-screen text-white flex flex-col items-center justify-start p-0 sm:p-6 lg:p-8">
 
-  <div class="max-w-3xl w-full bg-gray-800 p-2 md:p-2 border-2 border-gray-700 shadow-2xl transition-all duration-300">
+  <div class="max-w-3xl w-full bg-black p-4 md:p-6 border border-gray-800 shadow-2xl">
     <div id="story" class="space-y-6">
       <p class="text-center text-gray-400 text-lg" id="loading-message">Loading story...</p>
     </div>
   </div>
 
-  <!-- Pagination Controls (Always Fixed at Bottom) -->
-  <div id="pagination-controls" class="fixed bottom-0 left-0 w-full bg-gray-800 border-t border-gray-700 p-4 flex justify-between items-center z-50 hidden">
-    <button id="prev-page" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded disabled:opacity-50">Previous</button>
+  <!-- Pagination Controls (Fixed Bottom) -->
+  <div id="pagination-controls" class="fixed bottom-0 left-0 w-full bg-black border-t border-gray-800 p-4 flex justify-between items-center z-50 hidden">
+    <button id="prev-page" class="bg-blue-700 text-white px-4 py-2 border-2 border-blue-600 font-bold disabled:opacity-50">Previous</button>
     <span id="page-info" class="text-gray-400 text-sm"></span>
-    <button id="next-page" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded disabled:opacity-50">Next</button>
+    <button id="next-page" class="bg-green-700 text-white px-4 py-2 border-2 border-green-600 font-bold disabled:opacity-50">Next</button>
   </div>
 
   <div id="custom-message-box" class="fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100] transition-transform duration-300 transform translate-x-full hidden"></div>
@@ -120,7 +119,6 @@
       prevBtn.disabled = pageIndex === 0;
       nextBtn.disabled = pageIndex === storyPages.length - 1;
 
-      // Scroll to top of story container
       storyDiv.scrollIntoView({ behavior: 'smooth' });
     }
 
