@@ -22,32 +22,34 @@
     }
   </style>
 </head>
-<body class="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+<body class="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center justify-start p-4 sm:p-6 lg:p-8">
+
   <div class="max-w-3xl w-full bg-gray-800 p-6 md:p-8 border-2 border-gray-700 shadow-2xl transition-all duration-300">
     <div id="story" class="space-y-6">
       <p class="text-center text-gray-400 text-lg" id="loading-message">Loading story...</p>
     </div>
+  </div>
 
-    <!-- Pagination Controls -->
-    <div id="pagination-controls" class="flex justify-between items-center mt-6 hidden">
-      <button id="prev-page" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded disabled:opacity-50">Previous</button>
-      <span id="page-info" class="text-gray-400 text-sm"></span>
-      <button id="next-page" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded disabled:opacity-50">Next</button>
-    </div>
+  <!-- Pagination Controls (Always Fixed at Bottom) -->
+  <div id="pagination-controls" class="fixed bottom-0 left-0 w-full bg-gray-800 border-t border-gray-700 p-4 flex justify-between items-center z-50 hidden">
+    <button id="prev-page" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded disabled:opacity-50">Previous</button>
+    <span id="page-info" class="text-gray-400 text-sm"></span>
+    <button id="next-page" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded disabled:opacity-50">Next</button>
   </div>
 
   <div id="custom-message-box" class="fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100] transition-transform duration-300 transform translate-x-full hidden"></div>
 
   <script>
+    // Custom alert replacement
     function showCustomMessage(message, type = "info") {
       const messageBox = document.getElementById('custom-message-box');
       if (!messageBox) return;
       messageBox.textContent = message;
       messageBox.className = `fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100] transition-transform duration-300 transform translate-x-0`;
-      messageBox.classList.remove('hidden');
       if (type === "error") messageBox.classList.add('bg-red-600');
       else if (type === "success") messageBox.classList.add('bg-green-600');
       else messageBox.classList.add('bg-blue-600');
+      messageBox.classList.remove('hidden');
       setTimeout(() => {
         messageBox.classList.add('translate-x-full');
         messageBox.addEventListener('transitionend', () => {
@@ -64,7 +66,6 @@
       const storyDiv = document.getElementById('story');
       const loadingMessage = document.getElementById('loading-message');
       const pagination = document.getElementById('pagination-controls');
-      const pageInfo = document.getElementById('page-info');
 
       try {
         if (loadingMessage) loadingMessage.style.display = 'block';
@@ -77,7 +78,7 @@
 
         // Split story content into pages
         const content = story.content;
-        const maxCharsPerPage = 20000; // You can adjust this number
+        const maxCharsPerPage = 10000; // Adjust as needed
         for (let i = 0; i < content.length; i += maxCharsPerPage) {
           storyPages.push(content.slice(i, i + maxCharsPerPage));
         }
@@ -85,7 +86,7 @@
         // Render the first page
         renderPage(0, story.title);
 
-        // Show pagination if more than one page
+        // Show pagination if multiple pages
         if (storyPages.length > 1) {
           pagination.classList.remove('hidden');
         }
@@ -109,15 +110,12 @@
         </div>
       `;
 
-      // Update page info
       pageInfo.textContent = `Page ${pageIndex + 1} of ${storyPages.length}`;
-
-      // Manage buttons
       prevBtn.disabled = pageIndex === 0;
       nextBtn.disabled = pageIndex === storyPages.length - 1;
 
-      // Smooth scroll to top
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Scroll to top of story
+      storyDiv.scrollIntoView({ behavior: 'smooth' });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
