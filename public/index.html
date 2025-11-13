@@ -75,42 +75,46 @@
 
     /* ===== Story Card ===== */
     .story-card {
-    position: relative;
-    height: 300px;
-    background-size: cover;
-    background-position: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    overflow: hidden;
-    cursor: pointer;
-  }
+      position: relative;
+      height: 300px;
+      background-size: cover;
+      background-position: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      overflow: hidden;
+      cursor: pointer;
+    }
 
-  .story-card:hover {
-    transform: scale(1.03);
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
-  }
+    .story-card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+    }
 
-  /* Overlay behind title only */
-  .story-overlay {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 0.8rem 1rem;
-    box-sizing: border-box;
-  }
+    .story-overlay {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 0.8rem 1rem;
+      box-sizing: border-box;
+    }
 
-  .story-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #fff;
-    margin: 0;
-  }
+    .story-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      margin: 0;
+    }
+
+    /* Pagination */
+    .page-btn {
+      min-width: 110px;
+    }
   </style>
 </head>
 
-<body class="min-h-screen flex flex-col items-center justify-start p-4 sm:p-6 lg:p-8 text-white">
+<body class="min-h-screen flex flex-col items-center justify-start text-white">
 
   <!-- Loader -->
   <div id="loader">
@@ -143,14 +147,27 @@
     <div id="story-list" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
       <p class="text-center text-gray-400 text-lg col-span-full" id="loading-message">Loading stories...</p>
     </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="flex justify-center items-center mt-10 space-x-4" style="display:none">
+      <button id="prev-page" class="page-btn px-6 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-md text-white font-semibold transition disabled:opacity-40">← Previous</button>
+      <span id="page-info" class="text-gray-400"></span>
+      <button id="next-page" class="page-btn px-6 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-md text-white font-semibold transition disabled:opacity-40">Next →</button>
+    </div>
   </div>
 
   <script>
     const storyListDiv = document.getElementById('story-list');
     const loadingMessage = document.getElementById('loading-message');
-    const storiesPerPage = 25;
+    const paginationDiv = document.getElementById('pagination');
+    const prevPageBtn = document.getElementById('prev-page');
+    const nextPageBtn = document.getElementById('next-page');
+    const pageInfo = document.getElementById('page-info');
+
+    const storiesPerPage = 15;
     let allStories = [];
     let currentPage = 1;
+    let totalPages = 1;
 
     async function fetchAllStories() {
       try {
@@ -158,8 +175,12 @@
         const response = await fetch('/api/stories');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         allStories = await response.json();
+
+        totalPages = Math.max(1, Math.ceil(allStories.length / storiesPerPage));
         loadingMessage.style.display = 'none';
+
         renderStories(currentPage);
+        paginationDiv.style.display = totalPages > 1 ? 'flex' : 'none';
       } catch (error) {
         console.error('Failed to fetch stories:', error);
         storyListDiv.innerHTML = '<p class="text-center text-red-500 text-lg col-span-full">Failed to load stories. Please try again later.</p>';
@@ -167,31 +188,55 @@
     }
 
     function renderStories(page) {
-    storyListDiv.innerHTML = '';
-    const start = (page - 1) * storiesPerPage;
-    const end = page * storiesPerPage;
-    const storiesToShow = allStories.slice(start, end);
+      storyListDiv.innerHTML = '';
+      const start = (page - 1) * storiesPerPage;
+      const end = page * storiesPerPage;
+      const storiesToShow = allStories.slice(start, end);
 
-    if (storiesToShow.length === 0) {
-      storyListDiv.innerHTML = '<p class="text-center text-gray-500 text-lg col-span-full">No stories available yet. Start writing one!</p>';
-      return;
+      if (storiesToShow.length === 0) {
+        storyListDiv.innerHTML = '<p class="text-center text-gray-500 text-lg col-span-full">No stories available yet.</p>';
+        return;
+      }
+
+      storiesToShow.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'story-card';
+        card.style.backgroundImage = `url('${s.image || "default.jpg"}')`;
+        card.innerHTML = `
+          <div class="story-overlay">
+            <h3 class="story-title">${s.title}</h3>
+          </div>
+        `;
+        card.addEventListener('click', () => {
+          window.location.href = `/read?id=${s.id}`;
+        });
+        storyListDiv.appendChild(card);
+      });
+
+      updatePagination();
     }
 
-    storiesToShow.forEach(s => {
-      const card = document.createElement('div');
-      card.className = 'story-card';
-      card.style.backgroundImage = `url('${s.image || "default.jpg"}')`;
-      card.innerHTML = `
-        <div class="story-overlay">
-          <h3 class="story-title">${s.title}</h3>
-        </div>
-      `;
-      card.addEventListener('click', () => {
-        window.location.href = `/read?id=${s.id}`;
-      });
-      storyListDiv.appendChild(card);
+    function updatePagination() {
+      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+      prevPageBtn.disabled = currentPage <= 1;
+      nextPageBtn.disabled = currentPage >= totalPages;
+    }
+
+    prevPageBtn.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderStories(currentPage);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     });
-  }
+
+    nextPageBtn.addEventListener('click', () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderStories(currentPage);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
 
     window.addEventListener("load", () => {
       const loader = document.getElementById("loader");
