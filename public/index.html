@@ -3,27 +3,129 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>All Stories</title>
+  <title>TheAdultWorld</title>
   <link rel="stylesheet" href="index.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" type="image/x-icon" href="Logo.png">
-  
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
+
     body {
       font-family: "Lexend", sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      background-color: #0a0a0a; /* deep black background */
+      background-color: #0a0a0a;
+      margin: 0;
+      overflow: hidden;
     }
+
+    /* ===== Loader ===== */
+    #loader {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.8s ease;
+    }
+
+    #loader img {
+      width: 130px;
+      height: 130px;
+      filter: drop-shadow(0 0 12px #fff);
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.7; }
+      50% { transform: scale(1.15); opacity: 1; }
+    }
+
+    .loading-bar-container {
+      width: 200px;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+
+    .loading-bar {
+      width: 0%;
+      height: 100%;
+      background: white;
+      border-radius: 10px;
+      animation: loadBar 3.5s ease forwards;
+    }
+
+    @keyframes loadBar {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+
+    #main-content {
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+    #main-content.visible {
+      opacity: 1;
+    }
+
+    /* ===== Story Card ===== */
+    .story-card {
+    position: relative;
+    height: 300px;
+    background-size: cover;
+    background-position: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .story-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+  }
+
+  /* Overlay behind title only */
+  .story-overlay {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 0.8rem 1rem;
+    box-sizing: border-box;
+  }
+
+  .story-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+  }
   </style>
 </head>
+
 <body class="min-h-screen flex flex-col items-center justify-start p-4 sm:p-6 lg:p-8 text-white">
-  <div class="max-w-5xl w-full bg-black p-6 sm:p-8 md:p-10 border border-gray-800 shadow-2xl">
+
+  <!-- Loader -->
+  <div id="loader">
+    <img src="Logo.png" alt="Loading Logo">
+    <div class="loading-bar-container">
+      <div class="loading-bar"></div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div id="main-content" class="w-full bg-black p-6 sm:p-8 md:p-10 border border-gray-800 shadow-2xl">
     <h1 class="text-5xl sm:text-6xl font-extrabold mb-10 text-center leading-tight tracking-wide text-white">
-      All Stories
+      Latest Stories
     </h1>
-    <!-- Action buttons -->
+
     <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-12">
       <a href="/write" class="w-full sm:w-auto">
         <button class="w-full bg-blue-700 text-white font-bold py-3 px-8 border-2 border-blue-600 shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-500">
@@ -36,11 +138,13 @@
         </button>
       </a>
     </div>
-    <!-- Story list -->
-    <div id="story-list" class="space-y-6">
-      <p class="text-center text-gray-400 text-lg" id="loading-message">Loading stories...</p>
+
+    <!-- Story Grid -->
+    <div id="story-list" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <p class="text-center text-gray-400 text-lg col-span-full" id="loading-message">Loading stories...</p>
     </div>
   </div>
+
   <script>
     const storyListDiv = document.getElementById('story-list');
     const loadingMessage = document.getElementById('loading-message');
@@ -58,75 +162,50 @@
         renderStories(currentPage);
       } catch (error) {
         console.error('Failed to fetch stories:', error);
-        storyListDiv.innerHTML = '<p class="text-center text-red-500 text-lg">Failed to load stories. Please try again later.</p>';
+        storyListDiv.innerHTML = '<p class="text-center text-red-500 text-lg col-span-full">Failed to load stories. Please try again later.</p>';
       }
     }
 
     function renderStories(page) {
-      storyListDiv.innerHTML = '';
-      const start = (page - 1) * storiesPerPage;
-      const end = page * storiesPerPage;
-      const storiesToShow = allStories.slice(start, end);
+    storyListDiv.innerHTML = '';
+    const start = (page - 1) * storiesPerPage;
+    const end = page * storiesPerPage;
+    const storiesToShow = allStories.slice(start, end);
 
-      if (storiesToShow.length === 0) {
-        storyListDiv.innerHTML = '<p class="text-center text-gray-500 text-lg">No stories available yet. Start writing one!</p>';
-        return;
-      }
+    if (storiesToShow.length === 0) {
+      storyListDiv.innerHTML = '<p class="text-center text-gray-500 text-lg col-span-full">No stories available yet. Start writing one!</p>';
+      return;
+    }
 
-      storiesToShow.forEach(s => {
-        const card = document.createElement('div');
-        card.className = 'bg-black p-6 border border-gray-800 shadow-md'; // Black container, no border radius, no hover
-
-        card.innerHTML = `
-          <h3 class="text-2xl font-semibold text-white mb-3">${s.title}</h3>
-          <a href="/read?id=${s.id}" class="inline-block text-blue-400 font-medium text-lg">
-            Read More &rarr;
-          </a>
-        `;
-        storyListDiv.appendChild(card);
+    storiesToShow.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'story-card';
+      card.style.backgroundImage = `url('${s.image || "default.jpg"}')`;
+      card.innerHTML = `
+        <div class="story-overlay">
+          <h3 class="story-title">${s.title}</h3>
+        </div>
+      `;
+      card.addEventListener('click', () => {
+        window.location.href = `/read?id=${s.id}`;
       });
+      storyListDiv.appendChild(card);
+    });
+  }
 
-      renderPaginationControls(page);
-    }
-
-    function renderPaginationControls(page) {
-      const totalPages = Math.ceil(allStories.length / storiesPerPage);
-      if (totalPages <= 1) return;
-
-      const paginationDiv = document.createElement('div');
-      paginationDiv.className = "flex justify-center items-center space-x-4 mt-10";
-
-      if (page > 1) {
-        const prevBtn = document.createElement('button');
-        prevBtn.textContent = '← Previous';
-        prevBtn.className = 'bg-blue-700 text-white font-medium py-2 px-5 border-2 border-blue-600 shadow-md';
-        prevBtn.onclick = () => {
-          currentPage--;
-          renderStories(currentPage);
-        };
-        paginationDiv.appendChild(prevBtn);
-      }
-
-      const pageInfo = document.createElement('span');
-      pageInfo.className = 'text-gray-400 font-medium';
-      pageInfo.textContent = `Page ${page} of ${totalPages}`;
-      paginationDiv.appendChild(pageInfo);
-
-      if (page < totalPages) {
-        const nextBtn = document.createElement('button');
-        nextBtn.textContent = 'Next →';
-        nextBtn.className = 'bg-green-700 text-white font-medium py-2 px-5 border-2 border-green-600 shadow-md';
-        nextBtn.onclick = () => {
-          currentPage++;
-          renderStories(currentPage);
-        };
-        paginationDiv.appendChild(nextBtn);
-      }
-
-      storyListDiv.appendChild(paginationDiv);
-    }
-
-    document.addEventListener('DOMContentLoaded', fetchAllStories);
+    window.addEventListener("load", () => {
+      const loader = document.getElementById("loader");
+      const main = document.getElementById("main-content");
+      setTimeout(() => {
+        loader.style.opacity = "0";
+        setTimeout(() => {
+          loader.style.display = "none";
+          main.classList.add("visible");
+          document.body.style.overflow = "auto";
+          fetchAllStories();
+        }, 800);
+      }, 3500);
+    });
   </script>
 </body>
 </html>
