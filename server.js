@@ -30,6 +30,7 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html'
 app.get('/write', (req, res) => res.sendFile(path.join(__dirname, 'public/write.html')));
 app.get('/read', (req, res) => res.sendFile(path.join(__dirname, 'public/read.html')));
 app.get('/manage', (req, res) => res.sendFile(path.join(__dirname, 'public/manage.html')));
+app.get('/edit-story', (req, res) => res.sendFile(path.join(__dirname, 'public/edit-story.html')));
 
 // API
 app.get('/api/stories', async (req, res) => {

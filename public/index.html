@@ -193,7 +193,7 @@
     const items = allStories.slice(start, start + perPage);
 
     if (items.length === 0) {
-      storyList.innerHTML = `<p class='col-span-full text-gray-500'>No stories found.</p>`;
+      storyList.innerHTML = `<p class='col-span-full text-gray-500'>Loading..</p>`;
       return;
     }
 

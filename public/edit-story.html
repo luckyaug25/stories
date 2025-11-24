@@ -97,124 +97,137 @@
   <div id="custom-message-box" class="fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100] hidden"></div>
 
   <script defer>
-    const storyId = new URLSearchParams(location.search).get('id');
+  const storyId = new URLSearchParams(location.search).get('id');
+  let originalCoverImage = "";   // ⭐ store the original cover image
 
-    async function fetchStory() {
-      try {
-        const response = await fetch(`/api/stories/${storyId}`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const story = await response.json();
-        document.getElementById('title').value = story.title;
-        document.getElementById('content').value = story.content;
-      } catch (error) {
-        console.error('Failed to fetch story:', error);
-        showCustomMessage("Failed to load story. Please try again later.", "error");
-      }
+  async function fetchStory() {
+    try {
+      const response = await fetch(`/api/stories/${storyId}`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      const story = await response.json();
+
+      // ⭐ Save original cover image for later update
+      originalCoverImage = story.cover_image || "";
+
+      document.getElementById('title').value = story.title;
+      document.getElementById('content').value = story.content;
+
+    } catch (error) {
+      console.error('Failed to fetch story:', error);
+      showCustomMessage("Failed to load story. Please try again later.", "error");
+    }
+  }
+
+  function showCustomMessage(message, type = "info") {
+    const messageBox = document.getElementById('custom-message-box');
+    messageBox.textContent = message;
+    messageBox.className = `fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100]`;
+    if (type === "error") messageBox.classList.add('btn-red');
+    else if (type === "success") messageBox.classList.add('btn-green');
+    else messageBox.classList.add('btn-blue');
+    messageBox.classList.remove('hidden');
+    setTimeout(() => messageBox.classList.add('hidden'), 3000);
+  }
+
+  function openPopup() {
+    document.getElementById("mediaModal").style.display = "flex";
+    document.getElementById("mediaURL").value = "";
+    document.getElementById("mediaPreview").innerHTML = "";
+  }
+
+  function closePopup() {
+    document.getElementById("mediaModal").style.display = "none";
+  }
+
+  document.getElementById("mediaURL").addEventListener("input", function() {
+    const url = this.value.trim();
+    let previewHTML = "";
+    if (!url) return;
+
+    if (url.includes("youtube.com/watch?v=")) {
+      const videoId = url.split('v=')[1]?.split('&')[0];
+      if (videoId)
+        previewHTML = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen class="border-2 border-gray-700"></iframe>`;
+    } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+      previewHTML = `<video autoplay muted loop controls class="max-w-full max-h-full object-contain border-2 border-gray-700"><source src="${url}"></video>`;
+    } else {
+      previewHTML = `<img src="${url}" alt="Preview" class="max-w-full max-h-full object-contain border-2 border-gray-700">`;
     }
 
-    function showCustomMessage(message, type = "info") {
-      const messageBox = document.getElementById('custom-message-box');
-      messageBox.textContent = message;
-      messageBox.className = `fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100]`;
-      if (type === "error") messageBox.classList.add('btn-red');
-      else if (type === "success") messageBox.classList.add('btn-green');
-      else messageBox.classList.add('btn-blue');
-      messageBox.classList.remove('hidden');
-      setTimeout(() => messageBox.classList.add('hidden'), 3000);
+    document.getElementById("mediaPreview").innerHTML = previewHTML;
+  });
+
+  function insertMediaFromPopup() {
+    const url = document.getElementById('mediaURL').value.trim();
+    const textarea = document.getElementById('content');
+
+    if (!url) {
+      showCustomMessage("Please enter a media URL.", "error");
+      return;
     }
 
-    function openPopup() {
-      document.getElementById("mediaModal").style.display = "flex";
-      document.getElementById("mediaURL").value = "";
-      document.getElementById("mediaPreview").innerHTML = "";
+    let mediaTag = '';
+
+    if (url.includes("youtube.com/watch?v=")) {
+      const videoId = url.split('v=')[1]?.split('&')[0];
+      if (videoId)
+        mediaTag = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="display:block; width:100%; margin:10px 0; border: 2px solid #222;"></iframe>`;
+      else return showCustomMessage("Invalid YouTube URL.", "error");
+    } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+      mediaTag = `<video autoplay loop muted controls src="${url}" style="display:block; width:100%; margin:10px 0; border: 2px solid #222;"></video>`;
+    } else {
+      mediaTag = `<img src="${url}" style="display:block; width:100%; margin:10px 0; border: 2px solid #222;">`;
     }
 
-    function closePopup() {
-      document.getElementById("mediaModal").style.display = "none";
-    }
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
 
-    // ✅ Updated preview style (same as write page)
-    document.getElementById("mediaURL").addEventListener("input", function() {
-      const url = this.value.trim();
-      let previewHTML = "";
+    textarea.value =
+      textarea.value.substring(0, start) +
+      '\n' + mediaTag + '\n' +
+      textarea.value.substring(end);
 
-      if (!url) return;
+    textarea.selectionStart = textarea.selectionEnd = start + mediaTag.length + 2;
+    textarea.focus();
 
-      if (url.includes("youtube.com/watch?v=")) {
-        const videoId = url.split('v=')[1]?.split('&')[0];
-        if (videoId)
-          previewHTML = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen class="border-2 border-gray-700"></iframe>`;
-      } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
-        previewHTML = `<video autoplay muted loop controls class="max-w-full max-h-full object-contain border-2 border-gray-700"><source src="${url}"></video>`;
+    closePopup();
+  }
+
+  document.getElementById('editStoryForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const updatedTitle = document.getElementById('title').value.trim();
+    const updatedContent = document.getElementById('content').value.trim();
+
+    if (!updatedTitle || !updatedContent)
+      return showCustomMessage("Title and content are required.", "error");
+
+    try {
+      const res = await fetch(`/api/stories/${storyId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: updatedTitle,
+          content: updatedContent,
+          cover_image: originalCoverImage   // ⭐ SEND THE SAME COVER IMAGE BACK
+        })
+      });
+
+      if (res.ok) {
+        showCustomMessage("Story updated successfully!", "success");
+        setTimeout(() => window.location.href = '/manage', 1500);
       } else {
-        previewHTML = `<img src="${url}" alt="Preview" class="max-w-full max-h-full object-contain border-2 border-gray-700">`;
+        showCustomMessage("Failed to update the story.", "error");
       }
-
-      document.getElementById("mediaPreview").innerHTML = previewHTML;
-    });
-
-    // ✅ Updated insertion style (same as write page)
-    function insertMediaFromPopup() {
-      const url = document.getElementById('mediaURL').value.trim();
-      const textarea = document.getElementById('content');
-
-      if (!url) {
-        showCustomMessage("Please enter a media URL.", "error");
-        return;
-      }
-
-      let mediaTag = '';
-
-      if (url.includes("youtube.com/watch?v=")) {
-        const videoId = url.split('v=')[1]?.split('&')[0];
-        if (videoId)
-          mediaTag = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="display:block; width:100%; margin:10px 0; border: 2px solid #222;"></iframe>`;
-        else return showCustomMessage("Invalid YouTube URL.", "error");
-      } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
-        mediaTag = `<video autoplay loop muted controls src="${url}" style="display:block; width:100%; margin:10px 0; border: 2px solid #222;"></video>`;
-      } else {
-        mediaTag = `<img src="${url}" style="display:block; width:100%; margin:10px 0; border: 2px solid #222;">`;
-      }
-
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const before = textarea.value.substring(0, start);
-      const after = textarea.value.substring(end);
-      textarea.value = before + '\n' + mediaTag + '\n' + after;
-      textarea.selectionStart = textarea.selectionEnd = start + mediaTag.length + 2;
-      textarea.focus();
-
-      closePopup();
+    } catch (err) {
+      console.error(err);
+      showCustomMessage("Error updating story.", "error");
     }
+  });
 
-    document.getElementById('editStoryForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const updatedTitle = document.getElementById('title').value.trim();
-      const updatedContent = document.getElementById('content').value.trim();
+  window.onload = fetchStory;
+</script>
 
-      if (!updatedTitle || !updatedContent)
-        return showCustomMessage("Title and content are required.", "error");
-
-      try {
-        const res = await fetch(`/api/stories/${storyId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: updatedTitle, content: updatedContent })
-        });
-
-        if (res.ok) {
-          showCustomMessage("Story updated successfully!", "success");
-          setTimeout(() => window.location.href = '/manage', 1500);
-        } else {
-          showCustomMessage("Failed to update the story.", "error");
-        }
-      } catch (err) {
-        console.error(err);
-        showCustomMessage("Error updating story.", "error");
-      }
-    });
-
-    window.onload = fetchStory;
-  </script>
 </body>
 </html>
