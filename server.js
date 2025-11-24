@@ -1,35 +1,31 @@
 const express = require('express');
 const path = require('path');
-const { Pool } = require('pg'); // PostgreSQL
+const { Pool } = require('pg');
 require('dotenv').config();
 
 const app = express();
 const port = 3000;
 
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-// PostgreSQL setup
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL, // put this in your .env file
-  ssl: {
-    rejectUnauthorized: false, // needed for many free cloud DBs
-  },
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
 });
 
-// Create table if it doesn't exist
+// Create table
 pool.query(`
   CREATE TABLE IF NOT EXISTS stories (
     id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
+    cover_image TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `);
 
-// Routes
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')));
 app.get('/write', (req, res) => res.sendFile(path.join(__dirname, 'public/write.html')));
 app.get('/read', (req, res) => res.sendFile(path.join(__dirname, 'public/read.html')));
@@ -40,55 +36,56 @@ app.get('/api/stories', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM stories ORDER BY created_at DESC');
     res.json(result.rows);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Database error' });
   }
 });
 
 app.get('/api/stories/:id', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM stories WHERE id = $1', [req.params.id]);
-    res.json(result.rows[0]);
-  } catch (err) {
+    const r = await pool.query('SELECT * FROM stories WHERE id = $1', [req.params.id]);
+    res.json(r.rows[0]);
+  } catch {
     res.status(500).json({ error: 'Database error' });
   }
 });
 
 app.post('/api/stories', async (req, res) => {
-  const { title, content } = req.body;
-  if (!title || !content) {
-    return res.status(400).json({ error: 'Missing title or content' });
-  }
+  const { title, content, cover_image } = req.body;
+
+  if (!title || !content)
+    return res.status(400).json({ error: 'Missing fields' });
 
   try {
     const result = await pool.query(
-      'INSERT INTO stories (title, content) VALUES ($1, $2) RETURNING id',
-      [title, content]
+      'INSERT INTO stories (title, content, cover_image) VALUES ($1, $2, $3) RETURNING id',
+      [title, content, cover_image]
     );
-    res.status(200).json({ id: result.rows[0].id });
-  } catch (err) {
+    res.json({ id: result.rows[0].id });
+  } catch {
     res.status(500).json({ error: 'Database error' });
   }
 });
 
 app.put('/api/stories/:id', async (req, res) => {
-  const { title, content } = req.body;
+  const { title, content, cover_image } = req.body;
+
   try {
     const result = await pool.query(
-      'UPDATE stories SET title = $1, content = $2 WHERE id = $3',
-      [title, content, req.params.id]
+      'UPDATE stories SET title=$1, content=$2, cover_image=$3 WHERE id=$4',
+      [title, content, cover_image, req.params.id]
     );
     res.json({ updated: result.rowCount });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Database error' });
   }
 });
 
 app.delete('/api/stories/:id', async (req, res) => {
   try {
-    const result = await pool.query('DELETE FROM stories WHERE id = $1', [req.params.id]);
-    res.json({ deleted: result.rowCount });
-  } catch (err) {
+    const r = await pool.query('DELETE FROM stories WHERE id=$1', [req.params.id]);
+    res.json({ deleted: r.rowCount });
+  } catch {
     res.status(500).json({ error: 'Database error' });
   }
 });

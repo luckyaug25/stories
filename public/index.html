@@ -202,7 +202,7 @@
       storiesToShow.forEach(s => {
         const card = document.createElement('div');
         card.className = 'story-card';
-        card.style.backgroundImage = `url('${s.image || "default.jpg"}')`;
+        card.style.backgroundImage = `url('${s.cover_image || "default.jpg"}')`;
         card.innerHTML = `
           <div class="story-overlay">
             <h3 class="story-title">${s.title}</h3>

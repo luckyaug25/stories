@@ -10,33 +10,19 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
       background-color: #0a0a0a;
       color: white;
     }
-
-    #storyForm img, #storyForm video, #storyForm iframe,
-    #mediaPreview img, #mediaPreview video, #mediaPreview iframe {
-      max-width: 100%;
-      height: auto;
-      display: block;
-      margin: 1rem auto;
-      border: 2px solid #222;
-    }
-
-    /* Remove hover & border-radius globally */
     button, a {
       border-radius: 0 !important;
       transition: none !important;
     }
-
-    /* Buttons colors */
     .btn-blue { background-color: #007bff; border: 2px solid #007bff; color: white; }
     .btn-green { background-color: #00a65a; border: 2px solid #00a65a; color: white; }
     .btn-red { background-color: #d9534f; border: 2px solid #d9534f; color: white; }
   </style>
 </head>
+
 <body class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
 
   <div class="max-w-3xl w-full bg-black p-6 border-2 border-gray-800 shadow-2xl">
@@ -45,16 +31,22 @@
     </h1>
 
     <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-10">
-      <a href="/" class="w-full sm:w-auto">
-        <button class="btn-blue w-full sm:w-auto py-3 px-8 font-bold">Home</button>
+      <a href="/">
+        <button class="btn-blue py-3 px-8 font-bold w-full sm:w-auto">Home</button>
       </a>
-      <a href="/manage" class="w-full sm:w-auto">
-        <button class="btn-blue w-full sm:w-auto py-3 px-8 font-bold">Manage Stories</button>
+      <a href="/manage">
+        <button class="btn-blue py-3 px-8 font-bold w-full sm:w-auto">Manage Stories</button>
       </a>
     </div>
 
+    <!-- FORM -->
     <form id="storyForm" class="flex flex-col gap-4">
+
       <input type="text" id="title" placeholder="Title" required class="p-3 bg-black text-white border-2 border-gray-700">
+
+      <!-- COVER IMAGE INPUT -->
+      <input type="text" id="coverImage" placeholder="Cover Image URL" class="p-3 bg-black text-white border-2 border-gray-700">
+
       <textarea id="content" placeholder="Write your story here..." rows="10" required class="p-3 bg-black text-white border-2 border-gray-700 resize-y"></textarea>
 
       <div class="buttons flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mt-4">
@@ -64,128 +56,102 @@
     </form>
   </div>
 
-  <!-- Media Modal -->
+  <!-- Media Popup -->
   <div id="mediaModal" class="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center p-4 z-50 hidden">
-    <div class="bg-black p-6 shadow-xl w-full max-w-xl border-2 border-gray-800 overflow-y-auto max-h-[90vh]">
-      <h3 class="text-2xl font-semibold text-white mb-4">Insert Image / Video / GIF</h3>
-      <input type="text" id="mediaURL" placeholder="Paste media link here" class="w-full p-3 mb-4 bg-black text-white border-2 border-gray-700">
-      <div id="mediaPreview" class="mb-4 p-2 border-2 border-gray-700 flex justify-center items-center"></div>
-      <div class="flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4 mt-4">
-        <button type="button" onclick="insertMediaFromPopup()" class="btn-blue w-full sm:w-auto py-2 px-6 font-bold">Insert</button>
-        <button type="button" onclick="closePopup()" class="btn-red w-full sm:w-auto py-2 px-6 font-bold">Cancel</button>
+    <div class="bg-black p-6 w-full max-w-xl border-2 border-gray-700">
+      <h3 class="text-2xl font-semibold text-white mb-4">Insert Media</h3>
+      <input type="text" id="mediaURL" placeholder="Paste media link" class="w-full p-3 mb-4 bg-black text-white border-2 border-gray-700">
+      <div id="mediaPreview" class="mb-4 p-2 border-2 border-gray-700"></div>
+
+      <div class="flex justify-end space-x-3">
+        <button onclick="insertMediaFromPopup()" class="btn-blue py-2 px-6 font-bold">Insert</button>
+        <button onclick="closePopup()" class="btn-red py-2 px-6 font-bold">Cancel</button>
       </div>
     </div>
   </div>
 
-  <div id="custom-message-box" class="fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100] hidden"></div>
+  <div id="custom-message-box" class="fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg hidden"></div>
 
   <script>
     function showCustomMessage(message, type = "info") {
-      const messageBox = document.getElementById('custom-message-box');
-      if (!messageBox) return;
-
-      messageBox.textContent = message;
-      messageBox.className = `fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100]`;
-
-      if (type === "error") messageBox.classList.add('btn-red');
-      else if (type === "success") messageBox.classList.add('btn-green');
-      else messageBox.classList.add('btn-blue');
-
-      messageBox.classList.remove('hidden');
-
-      setTimeout(() => {
-        messageBox.classList.add('hidden');
-      }, 3000);
+      const box = document.getElementById("custom-message-box");
+      box.textContent = message;
+      box.className = "fixed top-4 right-4 p-4 text-white text-lg font-semibold";
+      if (type === "error") box.classList.add("btn-red");
+      if (type === "success") box.classList.add("btn-green");
+      if (type === "info") box.classList.add("btn-blue");
+      box.classList.remove("hidden");
+      setTimeout(() => box.classList.add("hidden"), 3000);
     }
 
-    document.getElementById('storyForm').addEventListener('submit', async function(e) {
+    document.getElementById("storyForm").addEventListener("submit", async e => {
       e.preventDefault();
-      const title = document.getElementById('title').value.trim();
-      const content = document.getElementById('content').value.trim();
+
+      const title = document.getElementById("title").value.trim();
+      const content = document.getElementById("content").value.trim();
+      const coverImage = document.getElementById("coverImage").value.trim() || null;
 
       if (!title || !content) {
-        showCustomMessage("Title and content are required.", "error");
+        showCustomMessage("Title & content required.", "error");
         return;
       }
 
-      try {
-        const res = await fetch('/api/stories', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, content })
-        });
+      const res = await fetch("/api/stories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, content, cover_image: coverImage })
+      });
 
-        if (res.ok) {
-          showCustomMessage("Story posted successfully!", "success");
-          setTimeout(() => window.location.href = '/', 1500);
-        } else {
-          showCustomMessage("Failed to post story.", "error");
-        }
-      } catch (err) {
-        console.error(err);
-        showCustomMessage("Error submitting story.", "error");
+      if (res.ok) {
+        showCustomMessage("Story posted!", "success");
+        setTimeout(() => window.location.href = "/", 1000);
+      } else {
+        showCustomMessage("Failed to post story.", "error");
       }
     });
 
     function openPopup() {
       document.getElementById("mediaModal").style.display = "flex";
-      document.getElementById("mediaURL").value = "";
-      document.getElementById("mediaPreview").innerHTML = "";
     }
 
     function closePopup() {
       document.getElementById("mediaModal").style.display = "none";
     }
 
-    document.getElementById("mediaURL").addEventListener("input", function() {
+    document.getElementById("mediaURL").addEventListener("input", function () {
       const url = this.value.trim();
-      let previewHTML = "";
-
+      let p = "";
       if (!url) return;
-
       if (url.includes("youtube.com/watch?v=")) {
-        const videoId = url.split('v=')[1]?.split('&')[0];
-        if (videoId) previewHTML = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen class="border-2 border-gray-700"></iframe>`;
+        const id = url.split("v=")[1].split("&")[0];
+        p = `<iframe width="100%" height="250" src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe>`;
       } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
-        previewHTML = `<video autoplay muted loop controls class="max-w-full max-h-full object-contain border-2 border-gray-700"><source src="${url}"></video>`;
+        p = `<video controls src="${url}" class="w-full"></video>`;
       } else {
-        previewHTML = `<img src="${url}" alt="Preview" class="max-w-full max-h-full object-contain border-2 border-gray-700">`;
+        p = `<img src="${url}" class="w-full">`;
       }
-
-      document.getElementById("mediaPreview").innerHTML = previewHTML;
+      document.getElementById("mediaPreview").innerHTML = p;
     });
 
     function insertMediaFromPopup() {
-      const url = document.getElementById('mediaURL').value.trim();
-      const textarea = document.getElementById('content');
+      const url = document.getElementById("mediaURL").value.trim();
+      if (!url) return;
+      const textarea = document.getElementById("content");
+      let tag = "";
 
-      if (!url) {
-        showCustomMessage("Please enter a media URL.", "error");
-        return;
-      }
-
-      let mediaTag = '';
-
-      if (url.includes("youtube.com/watch?v=")) {
-        const videoId = url.split('v=')[1]?.split('&')[0];
-        if (videoId) mediaTag = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="display:block; width:100%; margin:10px 0; border: 2px solid #222;"></iframe>`;
-        else return showCustomMessage("Invalid YouTube URL.", "error");
+      if (url.includes("youtube.com")) {
+        const id = url.split("v=")[1].split("&")[0];
+        tag = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${id}"></iframe>`;
       } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
-        mediaTag = `<video autoplay loop muted controls src="${url}" style="display:block; width:100%; margin:10px 0; border: 2px solid #222;"></video>`;
+        tag = `<video controls src="${url}" style="width:100%"></video>`;
       } else {
-        mediaTag = `<img src="${url}" style="display:block; width:100%; margin:10px 0; border: 2px solid #222;">`;
+        tag = `<img src="${url}" style="width:100%">`;
       }
 
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const before = textarea.value.substring(0, start);
-      const after = textarea.value.substring(end);
-      textarea.value = before + '\n' + mediaTag + '\n' + after;
-      textarea.selectionStart = textarea.selectionEnd = start + mediaTag.length + 2;
-      textarea.focus();
-
+      textarea.value += "\n" + tag + "\n";
       closePopup();
     }
   </script>
+
 </body>
 </html>
