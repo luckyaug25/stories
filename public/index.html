@@ -75,16 +75,18 @@
 
     /* ===== Story Card ===== */
     .story-card {
-      position: relative;
-      height: 350px;
-      background-size: cover;
-      background-position: center;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      overflow: hidden;
-      cursor: pointer;
-    }
+  position: relative;
+  height: 350px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat; /* 🔥 THIS FIXES REPEATING */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+  cursor: pointer;
+}
+
 
     .story-card:hover {
       transform: scale(1.03);
@@ -111,6 +113,12 @@
     .page-btn {
       min-width: 110px;
     }
+    @media (min-width: 1024px) {
+  .story-card {
+    height: 420px; /* 🔥 your new desktop height */
+  }
+}
+
   </style>
 </head>
 
