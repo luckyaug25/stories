@@ -57,7 +57,7 @@
   </div>
 
   <!-- Media Popup -->
-  <div id="mediaModal" class="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center p-4 z-50 hidden">
+  <div id="mediaModal" class="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center p-4 z-50 hidden overflow-y-auto">
     <div class="bg-black p-6 w-full max-w-xl border-2 border-gray-700">
       <h3 class="text-2xl font-semibold text-white mb-4">Insert Media</h3>
       <input type="text" id="mediaURL" placeholder="Paste media link" class="w-full p-3 mb-4 bg-black text-white border-2 border-gray-700">
@@ -73,85 +73,120 @@
   <div id="custom-message-box" class="fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg hidden"></div>
 
   <script>
-    function showCustomMessage(message, type = "info") {
-      const box = document.getElementById("custom-message-box");
-      box.textContent = message;
-      box.className = "fixed top-4 right-4 p-4 text-white text-lg font-semibold";
-      if (type === "error") box.classList.add("btn-red");
-      if (type === "success") box.classList.add("btn-green");
-      if (type === "info") box.classList.add("btn-blue");
-      box.classList.remove("hidden");
-      setTimeout(() => box.classList.add("hidden"), 3000);
+  function showCustomMessage(message, type = "info") {
+    const box = document.getElementById("custom-message-box");
+    box.textContent = message;
+    box.className = "fixed top-4 right-4 p-4 text-white text-lg font-semibold";
+    if (type === "error") box.classList.add("btn-red");
+    if (type === "success") box.classList.add("btn-green");
+    if (type === "info") box.classList.add("btn-blue");
+    box.classList.remove("hidden");
+    setTimeout(() => box.classList.add("hidden"), 3000);
+  }
+
+  document.getElementById("storyForm").addEventListener("submit", async e => {
+    e.preventDefault();
+
+    const title = document.getElementById("title").value.trim();
+    const content = document.getElementById("content").value.trim();
+    const coverImage = document.getElementById("coverImage").value.trim() || null;
+
+    if (!title || !content) {
+      showCustomMessage("Title & content required.", "error");
+      return;
     }
 
-    document.getElementById("storyForm").addEventListener("submit", async e => {
-      e.preventDefault();
-
-      const title = document.getElementById("title").value.trim();
-      const content = document.getElementById("content").value.trim();
-      const coverImage = document.getElementById("coverImage").value.trim() || null;
-
-      if (!title || !content) {
-        showCustomMessage("Title & content required.", "error");
-        return;
-      }
-
-      const res = await fetch("/api/stories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content, cover_image: coverImage })
-      });
-
-      if (res.ok) {
-        showCustomMessage("Story posted!", "success");
-        setTimeout(() => window.location.href = "/", 1000);
-      } else {
-        showCustomMessage("Failed to post story.", "error");
-      }
+    const res = await fetch("/api/stories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, content, cover_image: coverImage })
     });
 
-    function openPopup() {
-      document.getElementById("mediaModal").style.display = "flex";
+    if (res.ok) {
+      showCustomMessage("Story posted!", "success");
+      setTimeout(() => window.location.href = "/", 1000);
+    } else {
+      showCustomMessage("Failed to post story.", "error");
+    }
+  });
+
+  function openPopup() {
+    const modal = document.getElementById("mediaModal");
+    modal.style.display = "flex";
+
+    // Reset fields when opened
+    document.getElementById("mediaURL").value = "";
+    document.getElementById("mediaPreview").innerHTML = "";
+  }
+
+  function closePopup() {
+    document.getElementById("mediaModal").style.display = "none";
+  }
+
+  document.getElementById("mediaURL").addEventListener("input", function () {
+    const url = this.value.trim();
+    const preview = document.getElementById("mediaPreview");
+    let p = "";
+
+    if (!url) {
+      preview.innerHTML = "";
+      return;
     }
 
-    function closePopup() {
-      document.getElementById("mediaModal").style.display = "none";
+    if (url.includes("youtube.com/watch?v=")) {
+      const id = url.split("v=")[1].split("&")[0];
+      p = `<iframe width="100%" height="250" src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe>`;
+    } 
+    else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+      p = `<video controls src="${url}" class="w-full"></video>`;
+    } 
+    else {
+      p = `<img src="${url}" class="w-full">`;
     }
 
-    document.getElementById("mediaURL").addEventListener("input", function () {
-      const url = this.value.trim();
-      let p = "";
-      if (!url) return;
-      if (url.includes("youtube.com/watch?v=")) {
-        const id = url.split("v=")[1].split("&")[0];
-        p = `<iframe width="100%" height="250" src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe>`;
-      } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
-        p = `<video controls src="${url}" class="w-full"></video>`;
-      } else {
-        p = `<img src="${url}" class="w-full">`;
-      }
-      document.getElementById("mediaPreview").innerHTML = p;
-    });
+    preview.innerHTML = p;
+  });
 
-    function insertMediaFromPopup() {
-      const url = document.getElementById("mediaURL").value.trim();
-      if (!url) return;
-      const textarea = document.getElementById("content");
-      let tag = "";
+  // Insert at cursor position
+  function insertAtCursor(textarea, text) {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const before = textarea.value.substring(0, start);
+    const after = textarea.value.substring(end);
+    textarea.value = before + text + after;
 
-      if (url.includes("youtube.com")) {
-        const id = url.split("v=")[1].split("&")[0];
-        tag = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${id}"></iframe>`;
-      } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
-        tag = `<video controls src="${url}" style="width:100%"></video>`;
-      } else {
-        tag = `<img src="${url}" style="width:100%">`;
-      }
+    // Move cursor after inserted content
+    textarea.selectionStart = textarea.selectionEnd = start + text.length;
+  }
 
-      textarea.value += "\n" + tag + "\n";
-      closePopup();
+  function insertMediaFromPopup() {
+    const url = document.getElementById("mediaURL").value.trim();
+    const preview = document.getElementById("mediaPreview");
+    if (!url) return;
+
+    let tag = "";
+
+    if (url.includes("youtube.com")) {
+      const id = url.split("v=")[1].split("&")[0];
+      tag = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${id}"></iframe>`;
+    } 
+    else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+      tag = `<video controls src="${url}" style="width:100%"></video>`;
+    } 
+    else {
+      tag = `<img src="${url}" style="width:100%">`;
     }
-  </script>
+
+    const textarea = document.getElementById("content");
+    insertAtCursor(textarea, "\n" + tag + "\n");
+
+    // Reset modal for next use
+    document.getElementById("mediaURL").value = "";
+    preview.innerHTML = "";
+
+    closePopup();
+  }
+</script>
 
 </body>
 </html>
