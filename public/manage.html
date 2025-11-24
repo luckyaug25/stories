@@ -1,145 +1,205 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage Stories</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Stories — TheAdultWorld</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="index.css">
   <link rel="icon" type="image/x-icon" href="Logo.png">
+
+  <!-- FONT AWESOME -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" crossorigin="anonymous"></script>
+
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      background-color: #0a0a0a; /* black background */
-      color: white;
-    }
-    .story-item {
-      background-color: #000; /* black story container */
-      border: 2px solid #222; /* subtle dark border */
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    }
-    .story-item a, .story-item button {
-      border: 2px solid transparent;
-    }
-    .story-item a {
-      background-color: #007bff; /* blue */
-      color: white;
-    }
-    .story-item button {
-      background-color: #00a65a; /* green */
-      color: white;
-    }
-    /* Remove hover & border-radius globally */
-    button, a {
-      border-radius: 0 !important;
-      transition: none !important;
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
+    body { font-family: "Lexend", sans-serif; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-start p-4 sm:p-6 lg:p-8">
 
-  <div class="max-w-4xl w-full bg-black p-6 border-2 border-gray-800 shadow-2xl">
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-8 text-center leading-tight">
-      Manage Your Stories
-    </h1>
+<body class="bg-black text-white w-full">
 
-    <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-10">
-      <a href="/" class="w-full sm:w-auto">
-        <button class="w-full bg-blue-700 text-white font-bold py-3 px-8 border-2 border-blue-600">
-          Home
-        </button>
+<div class="max-w-full mx-auto p-4 shadow-2xl bg-black border border-neutral-900">
+
+  <!-- HEADER -->
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-4xl font-extrabold">Manage Stories</h1>
+
+    <div class="flex gap-3">
+
+      <!-- HOME BUTTON -->
+      <a href="/" class="w-11 h-11 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-700 transition">
+        <i class="fa-solid fa-house text-lg"></i>
       </a>
-      <a href="/write" class="w-full sm:w-auto">
-        <button class="w-full bg-green-700 text-white font-bold py-3 px-8 border-2 border-green-600">
-          Write Story
-        </button>
-      </a>
-    </div>
 
-    <div id="storiesList" class="space-y-6">
-        <p class="text-center text-gray-400 text-lg" id="loading-message">Loading stories...</p>
+      <!-- WRITE STORY -->
+      <a href="/write" class="w-11 h-11 flex items-center justify-center rounded-full bg-green-600 hover:bg-green-700 transition">
+        <i class="fa-solid fa-pen-nib"></i>
+      </a>
+
     </div>
   </div>
 
-  <div id="custom-message-box" class="fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100] transition-transform duration-300 transform translate-x-full hidden"></div>
+  <!-- GRID -->
+  <div id="storiesGrid"
+    class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
 
-  <script>
-    function showCustomMessage(message, type = "info") {
-        const messageBox = document.getElementById('custom-message-box');
-        if (!messageBox) return;
-        messageBox.textContent = message;
-        messageBox.className = `fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100] transition-transform duration-300 transform translate-x-0`;
-        if (type === "error") messageBox.classList.add('bg-red-600');
-        else if (type === "success") messageBox.classList.add('bg-green-600');
-        else messageBox.classList.add('bg-blue-600');
-        messageBox.classList.remove('hidden');
-        setTimeout(() => {
-            messageBox.classList.add('translate-x-full');
-            messageBox.addEventListener('transitionend', () => {
-                messageBox.classList.add('hidden');
-            }, { once: true });
-        }, 3000);
+    <p id="loading-message" class="col-span-full text-center text-gray-400">
+      Loading stories...
+    </p>
+
+  </div>
+
+  <!-- PAGINATION -->
+  <div id="pagination" class="hidden mt-6 flex justify-center gap-4">
+
+    <!-- PREV -->
+    <button id="prev-page"
+      class="w-11 h-11 flex items-center justify-center rounded-full bg-neutral-800 hover:bg-neutral-700">
+      <i class="fa-solid fa-arrow-left"></i>
+    </button>
+
+    <span id="page-info" class="text-gray-300"></span>
+
+    <!-- NEXT -->
+    <button id="next-page"
+      class="w-11 h-11 flex items-center justify-center rounded-full bg-neutral-800 hover:bg-neutral-700">
+      <i class="fa-solid fa-arrow-right"></i>
+    </button>
+
+  </div>
+
+</div>
+
+<script>
+  let allStories = [];
+  let currentPage = 1;
+  let perPage = 20; // default (desktop)
+  
+  const grid = document.getElementById("storiesGrid");
+  const loadingMsg = document.getElementById("loading-message");
+  const pagination = document.getElementById("pagination");
+  const prevBtn = document.getElementById("prev-page");
+  const nextBtn = document.getElementById("next-page");
+  const pageInfo = document.getElementById("page-info");
+
+  // RESPONSIVE PER-PAGE LOGIC
+  function updatePerPage() {
+    if (window.innerWidth < 640) perPage = 20;        // mobile
+    else if (window.innerWidth < 1024) perPage = 21;  // tab small
+    else if (window.innerWidth < 1280) perPage = 20;  // tab large
+    else perPage = 20;                                // desktop
+  }
+
+  window.addEventListener("resize", () => {
+    updatePerPage();
+    render();
+  });
+
+  function escape(str) {
+    return str.replace(/[&<>"']/g, m => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[m]));
+  }
+
+  async function fetchStories() {
+    updatePerPage();
+
+    try {
+      const res = await fetch("/api/stories");
+      allStories = await res.json();
+      render();
+    } catch {
+      loadingMsg.textContent = "Failed to load stories.";
+    }
+  }
+
+  function render() {
+    grid.innerHTML = "";
+    loadingMsg.classList.add("hidden");
+
+    const start = (currentPage - 1) * perPage;
+    const items = allStories.slice(start, start + perPage);
+
+    if (items.length === 0) {
+      grid.innerHTML = `<p class="col-span-full text-center text-gray-500">No stories found.</p>`;
+      return;
     }
 
-    async function fetchStories() {
-      const storiesList = document.getElementById('storiesList');
-      const loadingMessage = document.getElementById('loading-message');
+    items.forEach(s => {
+      const div = document.createElement("div");
 
-      try {
-        if (loadingMessage) loadingMessage.style.display = 'block';
-        const response = await fetch('/api/stories');
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const stories = await response.json();
-        loadingMessage.style.display = 'none';
+      div.className =
+        "group relative overflow-hidden border border-white/5 transition transform hover:scale-105 " +
+        "h-[350px] lg:h-[420px] bg-cover bg-center";
 
-        storiesList.innerHTML = '';
+      div.style.backgroundImage = `url('${s.cover_image || "default.jpg"}')`;
 
-        if (stories.length === 0) {
-            storiesList.innerHTML = '<p class="text-center text-gray-500 text-lg">No stories to manage yet. Start writing one!</p>';
-        } else {
-            stories.forEach(story => {
-              const storyElement = document.createElement('div');
-              storyElement.classList.add('story-item', 'p-6', 'flex', 'justify-between', 'items-center');
-              storyElement.innerHTML = `
-                <h3 class="text-2xl font-semibold text-white mb-0">${story.title}</h3>
-                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-                  <a href="edit-story.html?id=${story.id}" class="inline-block py-2 px-6 font-bold">Edit</a>
-                  <button onclick="deleteStory(${story.id})" class="py-2 px-6 font-bold">Delete</button>
-                </div>
-              `;
-              storiesList.appendChild(storyElement);
-            });
-        }
-      } catch (err) {
-        console.error("Error fetching stories:", err);
-        storiesList.innerHTML = '<p class="text-center text-red-400 text-lg">Failed to load stories. Please try again later.</p>';
-        showCustomMessage("Failed to load stories. Please try again later.", "error");
-      }
+      div.innerHTML = `
+        <div class="absolute bottom-0 w-full bg-black/60 p-3 flex flex-col gap-2">
+          <h3 class="font-bold text-sm truncate">${escape(s.title)}</h3>
+
+          <div class="flex justify-between gap-4 opacity-0 translate-y-2 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0">
+
+            <!-- EDIT ICON BUTTON -->
+            <a href="/edit-story?id=${s.id}"
+              class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 hover:bg-green-700">
+              <i class="fa-solid fa-pen"></i>
+            </a>
+
+            <!-- DELETE ICON BUTTON -->
+            <button onclick="deleteStory('${s.id}')"
+              class="w-10 h-10 flex items-center justify-center rounded-full bg-red-600 hover:bg-red-700">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+
+          </div>
+        </div>
+      `;
+
+      grid.appendChild(div);
+    });
+
+    updatePagination();
+  }
+
+  function updatePagination() {
+    const total = Math.ceil(allStories.length / perPage);
+
+    pagination.classList.toggle("hidden", total <= 1);
+
+    pageInfo.textContent = `Page ${currentPage} of ${total}`;
+
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage === total;
+  }
+
+  prevBtn.onclick = () => {
+    if (currentPage > 1) {
+      currentPage--;
+      render();
     }
+  };
 
-    document.addEventListener('DOMContentLoaded', fetchStories);
-
-    async function deleteStory(storyId) {
-      if (!confirm("Are you sure you want to delete this story?")) return;
-      try {
-        const response = await fetch(`/api/stories/${storyId}`, { method: 'DELETE' });
-        if (response.ok) {
-          showCustomMessage("Story deleted successfully!", "success");
-          fetchStories();
-        } else {
-          showCustomMessage("Failed to delete the story.", "error");
-        }
-      } catch (err) {
-        console.error("Error deleting story:", err);
-        showCustomMessage("Error deleting story.", "error");
-      }
+  nextBtn.onclick = () => {
+    const total = Math.ceil(allStories.length / perPage);
+    if (currentPage < total) {
+      currentPage++;
+      render();
     }
+  };
 
-    window.confirm = function(message) {
-        return prompt(message + "\n\nType 'yes' to confirm or anything else to cancel.") === 'yes';
-    };
-  </script>
+  async function deleteStory(id) {
+    if (!confirm("Delete this story?")) return;
+
+    await fetch(`/api/stories/${id}`, { method: "DELETE" });
+
+    allStories = allStories.filter(s => s.id !== id);
+    render();
+  }
+
+  fetchStories();
+</script>
+
 </body>
 </html>
