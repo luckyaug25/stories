@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="index.css">
   <link rel="icon" type="image/x-icon" href="Logo.png" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" crossorigin="anonymous"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
     body {
@@ -51,10 +52,24 @@
 
   <!-- Pagination Controls -->
   <div id="pagination-controls" class="fixed bottom-0 left-0 w-full bg-black border-t border-gray-800 p-4 flex justify-between items-center z-50 hidden">
-    <button id="prev-page" class="bg-blue-700 text-white px-4 py-2 border-2 border-blue-600 font-bold disabled:opacity-50">Previous</button>
-    <span id="page-info" class="text-gray-400 text-sm"></span>
-    <button id="next-page" class="bg-green-700 text-white px-4 py-2 border-2 border-green-600 font-bold disabled:opacity-50">Next</button>
-  </div>
+  
+  <!-- Previous Button -->
+  <button id="prev-page" 
+    class="w-10 h-10 flex items-center justify-center rounded-full bg-blue-700 border-2 border-blue-600 text-white disabled:opacity-50">
+    <i class="fa-solid fa-arrow-left text-lg"></i>
+  </button>
+
+  <!-- Page Info -->
+  <span id="page-info" class="text-gray-400 text-sm"></span>
+
+  <!-- Next Button -->
+  <button id="next-page" 
+    class="w-10 h-10 flex items-center justify-center rounded-full bg-green-700 border-2 border-green-600 text-white disabled:opacity-50">
+    <i class="fa-solid fa-arrow-right text-lg"></i>
+  </button>
+
+</div>
+
 
   <div id="custom-message-box" class="fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100] transition-transform duration-300 transform translate-x-full hidden"></div>
 
