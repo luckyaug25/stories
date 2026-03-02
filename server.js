@@ -2,12 +2,13 @@ const express = require('express');
 const path = require('path');
 const { Pool } = require('pg');
 require('dotenv').config();
+const axios = require("axios"); // ✅ ADD THIS
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // ----------------------
-// FIX: Only ONE body parser with limit
+// BODY PARSER
 // ----------------------
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
@@ -15,7 +16,9 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 // Static files
 app.use(express.static('public'));
 
-// Database
+// ----------------------
+// DATABASE
+// ----------------------
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
@@ -32,14 +35,23 @@ pool.query(`
   )
 `);
 
-// Routes
+// ----------------------
+// PAGES
+// ----------------------
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')));
 app.get('/write', (req, res) => res.sendFile(path.join(__dirname, 'public/write.html')));
 app.get('/read', (req, res) => res.sendFile(path.join(__dirname, 'public/read.html')));
 app.get('/manage', (req, res) => res.sendFile(path.join(__dirname, 'public/manage.html')));
 app.get('/edit-story', (req, res) => res.sendFile(path.join(__dirname, 'public/edit-story.html')));
 
-// API — Get all stories
+// ✅ HEALTH ROUTE (VERY IMPORTANT)
+app.get('/health', (req, res) => {
+  res.status(200).send("OK");
+});
+
+// ----------------------
+// API ROUTES
+// ----------------------
 app.get('/api/stories', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM stories ORDER BY created_at DESC');
@@ -50,7 +62,6 @@ app.get('/api/stories', async (req, res) => {
   }
 });
 
-// API — Get single story
 app.get('/api/stories/:id', async (req, res) => {
   try {
     const r = await pool.query('SELECT * FROM stories WHERE id = $1', [req.params.id]);
@@ -61,7 +72,6 @@ app.get('/api/stories/:id', async (req, res) => {
   }
 });
 
-// API — Create story
 app.post('/api/stories', async (req, res) => {
   const { title, content, cover_image } = req.body;
 
@@ -70,7 +80,7 @@ app.post('/api/stories', async (req, res) => {
 
   try {
     const result = await pool.query(
-      'INSERT INTO stories (title, content, cover_image) VALUES ($1, $2, $3) RETURNING id',
+      'INSERT INTO stories (title, content, cover_image) VALUES ($1,$2,$3) RETURNING id',
       [title, content, cover_image]
     );
     res.json({ id: result.rows[0].id });
@@ -80,7 +90,6 @@ app.post('/api/stories', async (req, res) => {
   }
 });
 
-// API — Update story
 app.put('/api/stories/:id', async (req, res) => {
   const { title, content, cover_image } = req.body;
 
@@ -96,7 +105,6 @@ app.put('/api/stories/:id', async (req, res) => {
   }
 });
 
-// API — Delete story
 app.delete('/api/stories/:id', async (req, res) => {
   try {
     const r = await pool.query('DELETE FROM stories WHERE id=$1', [req.params.id]);
@@ -107,5 +115,22 @@ app.delete('/api/stories/:id', async (req, res) => {
   }
 });
 
-// Start server
-app.listen(port, () => console.log(`Server running at http://localhost:${port}`));
+// ----------------------
+// START SERVER
+// ----------------------
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+
+  // ✅ KEEP ALIVE SELF PING
+  const SERVER_URL =
+    process.env.APP_URL || `http://localhost:${port}`;
+
+  setInterval(async () => {
+    try {
+      await axios.get(`${SERVER_URL}/health`);
+      console.log("✅ Keep-alive ping sent");
+    } catch (err) {
+      console.log("⚠️ Ping failed");
+    }
+  }, 10 * 60 * 1000); // every 5 minutes
+});
