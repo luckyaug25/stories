@@ -1,205 +1,345 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Manage Stories — TheAdultWorld</title>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Story Studio | Management</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="icon" type="image/x-icon" href="Logo.png">
-
-  <!-- FONT AWESOME -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" crossorigin="anonymous"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
-    body { font-family: "Lexend", sans-serif; }
+    :root {
+      --bg-dark: #09090b;
+      --border: #27272a;
+      --panel-bg: #121214;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: #e4e4e7;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      min-height: 100vh;
+    }
+
+    * {
+      border-radius: 0 !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #27272a;
+    }
+
+    .btn-primary {
+      background-color: #f4f4f5;
+      color: #09090b;
+      transition: opacity 0.2s;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+    }
+
+    .btn-icon {
+      background: #18181b;
+      border: 1px solid var(--border);
+      color: #a1a1aa;
+      transition: all 0.2s;
+    }
+
+    .btn-icon:hover {
+      border-color: #52525b;
+      color: #f4f4f5;
+      background: #27272a;
+    }
+
+    .story-card {
+      background: #09090b;
+      border: 1px solid var(--border);
+      transition: border-color 0.3s ease;
+    }
+
+    .story-card:hover {
+      border-color: #52525b;
+    }
+
+    .card-image-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 2/3;
+      overflow: hidden;
+      background: #121214;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.7;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .story-card:hover .card-image {
+      opacity: 0.9;
+      transform: scale(1.05);
+    }
+
+    .action-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(9, 9, 11, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .story-card:hover .action-overlay {
+      opacity: 1;
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 
-<body class="bg-black text-white w-full">
+<body class="flex flex-col">
 
-<div class="max-w-full mx-auto p-4 shadow-2xl bg-black border border-neutral-900">
-
-  <!-- HEADER -->
-  <div class="flex justify-between items-center mb-8">
-    <h1 class="text-4xl font-extrabold">Manage Stories</h1>
-
-    <div class="flex gap-3">
-
-      <!-- HOME BUTTON -->
-      <a href="/" class="w-11 h-11 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-700 transition">
-        <i class="fa-solid fa-house text-lg"></i>
-      </a>
-
-      <!-- WRITE STORY -->
-      <a href="/write" class="w-11 h-11 flex items-center justify-center rounded-full bg-green-600 hover:bg-green-700 transition">
-        <i class="fa-solid fa-pen-nib"></i>
-      </a>
-
+  <!-- NAV -->
+  <header class="h-12 border-b border-[#27272a] flex items-center justify-between px-6 bg-[#09090b] shrink-0 sticky top-0 z-50">
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-5 h-5 bg-white flex items-center justify-center text-[10px] text-black font-bold">S</div>
+        <span class="font-medium text-sm tracking-tight text-white">StoryStudio</span>
+      </div>
+      <div class="h-4 w-[1px] bg-zinc-800"></div>
+      <nav class="flex gap-4">
+        <a href="/" class="text-zinc-500 hover:text-zinc-200 transition-colors text-xs">Dashboard</a>
+        <a href="/manage" class="text-zinc-200 transition-colors text-xs font-medium">Stories</a>
+      </nav>
     </div>
-  </div>
+    <div class="flex items-center gap-6">
+      <span class="text-[10px] text-zinc-600 font-mono hidden sm:inline">ARCHIVE_MANAGER v1.0</span>
+      <a href="/write" class="btn-primary px-4 py-1.5 text-xs font-semibold tracking-wide">
+        Create New
+      </a>
+    </div>
+  </header>
 
-  <!-- GRID -->
-  <div id="storiesGrid"
-    class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+  <main class="flex-1 mx-auto w-full p-6 sm:p-10">
+    
+    <!-- HEADER SECTION -->
+    <div class="mb-12 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-semibold text-white tracking-tight mb-1">Library Management</h1>
+        <p class="text-zinc-500 text-xs font-mono uppercase tracking-widest">Active Archives • <span id="total-count">0</span> Items</p>
+      </div>
+      <div class="flex gap-2">
+         <div class="h-8 px-3 border border-zinc-800 flex items-center gap-2 text-zinc-500">
+           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+           <input type="text" id="search" placeholder="FILTER_ID..." class="bg-transparent border-none outline-none text-[11px] w-32 font-mono">
+         </div>
+      </div>
+    </div>
 
-    <p id="loading-message" class="col-span-full text-center text-gray-400">
-      Loading stories...
-    </p>
+    <!-- GRID -->
+    <div id="storiesGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <!-- Skeleton Loading -->
+      <div id="loader" class="col-span-full py-20 text-center flex flex-col items-center gap-4">
+        <div class="w-6 h-6 border-2 border-zinc-800 border-t-zinc-400 animate-spin"></div>
+        <p id="loading-message" class="text-[10px] font-mono text-zinc-600 uppercase tracking-tighter">Synchronizing Database...</p>
+      </div>
+    </div>
 
-  </div>
-
-  <!-- PAGINATION -->
-  <div id="pagination" class="hidden mt-6 flex justify-center gap-4">
-
-    <!-- PREV -->
-    <button id="prev-page"
-      class="w-11 h-11 flex items-center justify-center rounded-full bg-neutral-800 hover:bg-neutral-700">
-      <i class="fa-solid fa-arrow-left"></i>
-    </button>
-
-    <span id="page-info" class="text-gray-300"></span>
-
-    <!-- NEXT -->
-    <button id="next-page"
-      class="w-11 h-11 flex items-center justify-center rounded-full bg-neutral-800 hover:bg-neutral-700">
-      <i class="fa-solid fa-arrow-right"></i>
-    </button>
-
-  </div>
-
-</div>
-
-<script>
-  let allStories = [];
-  let currentPage = 1;
-  let perPage = 20; // default (desktop)
-  
-  const grid = document.getElementById("storiesGrid");
-  const loadingMsg = document.getElementById("loading-message");
-  const pagination = document.getElementById("pagination");
-  const prevBtn = document.getElementById("prev-page");
-  const nextBtn = document.getElementById("next-page");
-  const pageInfo = document.getElementById("page-info");
-
-  // RESPONSIVE PER-PAGE LOGIC
-  function updatePerPage() {
-    if (window.innerWidth < 640) perPage = 20;        // mobile
-    else if (window.innerWidth < 1024) perPage = 21;  // tab small
-    else if (window.innerWidth < 1280) perPage = 20;  // tab large
-    else perPage = 20;                                // desktop
-  }
-
-  window.addEventListener("resize", () => {
-    updatePerPage();
-    render();
-  });
-
-  function escape(str) {
-    return str.replace(/[&<>"']/g, m => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-    }[m]));
-  }
-
-  async function fetchStories() {
-    updatePerPage();
-
-    try {
-      const res = await fetch("/api/stories");
-      allStories = await res.json();
-      render();
-    } catch {
-      loadingMsg.textContent = "Failed to load stories.";
-    }
-  }
-
-  function render() {
-    grid.innerHTML = "";
-    loadingMsg.classList.add("hidden");
-
-    const start = (currentPage - 1) * perPage;
-    const items = allStories.slice(start, start + perPage);
-
-    if (items.length === 0) {
-      grid.innerHTML = `<p class="col-span-full text-center text-gray-500">No stories found.</p>`;
-      return;
-    }
-
-    items.forEach(s => {
-      const div = document.createElement("div");
-
-      div.className =
-        "group relative overflow-hidden border border-white/5 transition transform hover:scale-105 " +
-        "h-[350px] lg:h-[420px] bg-cover bg-center";
-
-      div.style.backgroundImage = `url('${s.cover_image || "default.jpg"}')`;
-
-      div.innerHTML = `
-        <div class="absolute bottom-0 w-full bg-black/60 p-3 flex flex-col gap-2">
-          <h3 class="font-bold text-sm truncate">${escape(s.title)}</h3>
-
-          <div class="flex justify-between gap-4 opacity-0 translate-y-2 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0">
-
-            <!-- EDIT ICON BUTTON -->
-            <a href="/edit-story?id=${s.id}"
-              class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 hover:bg-green-700">
-              <i class="fa-solid fa-pen"></i>
-            </a>
-
-            <!-- DELETE ICON BUTTON -->
-            <button onclick="deleteStory('${s.id}')"
-              class="w-10 h-10 flex items-center justify-center rounded-full bg-red-600 hover:bg-red-700">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-
-          </div>
+    <!-- PAGINATION -->
+    <div id="pagination" class="hidden mt-16 pt-8 border-t border-zinc-900 flex flex-col items-center gap-4">
+      <div class="flex items-center gap-1">
+        <button id="prev-page" class="pagination-btn btn-icon w-10 h-10 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <div class="px-6 h-10 border border-zinc-800 flex items-center">
+           <span id="page-info" class="text-[11px] font-mono text-zinc-400">PAGE 01 / 01</span>
         </div>
-      `;
+        <button id="next-page" class="pagination-btn btn-icon w-10 h-10 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-9-6"/></svg>
+        </button>
+      </div>
+    </div>
 
-      grid.appendChild(div);
+  </main>
+
+  <script>
+    let allStories = [];
+    let filteredStories = [];
+    let currentPage = 1;
+    const perPage = 25;
+    
+    const grid = document.getElementById("storiesGrid");
+    const loader = document.getElementById("loader");
+    const loadingMsg = document.getElementById("loading-message");
+    const pagination = document.getElementById("pagination");
+    const prevBtn = document.getElementById("prev-page");
+    const nextBtn = document.getElementById("next-page");
+    const pageInfo = document.getElementById("page-info");
+    const totalCountEl = document.getElementById("total-count");
+
+    /**
+     * Enhanced Fetch with Retry Logic
+     */
+    async function fetchWithRetry(url, options = {}, retries = 5, backoff = 1000) {
+      try {
+        const response = await fetch(url, {
+          ...options,
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            ...options.headers
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP Error: ${response.status}`);
+        }
+        
+        return await response.json();
+      } catch (err) {
+        if (retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, backoff));
+          return fetchWithRetry(url, options, retries - 1, backoff * 2);
+        }
+        throw err;
+      }
+    }
+
+    async function fetchStories() {
+      try {
+        // Reset state
+        loader.classList.remove('hidden');
+        loadingMsg.textContent = "Synchronizing Database...";
+        loadingMsg.classList.remove("text-rose-900");
+
+        const data = await fetchWithRetry("/api/stories");
+        
+        allStories = Array.isArray(data) ? data : [];
+        filteredStories = [...allStories];
+        totalCountEl.textContent = allStories.length.toString().padStart(2, '0');
+        
+        render();
+      } catch (err) {
+        console.error("Fetch failure:", err);
+        loadingMsg.textContent = "DATABASE_SYNC_ERROR: RECONNECTION_FAILED";
+        loadingMsg.classList.add("text-rose-900");
+      }
+    }
+
+    function render() {
+      // Clear grid and loader
+      grid.innerHTML = "";
+      
+      const start = (currentPage - 1) * perPage;
+      const items = filteredStories.slice(start, start + perPage);
+
+      if (items.length === 0) {
+        grid.innerHTML = `<div class="col-span-full py-20 text-center text-zinc-700 text-[11px] font-mono italic">NO_MATCHING_RECORDS_FOUND</div>`;
+        pagination.classList.add("hidden");
+        return;
+      }
+
+      items.forEach(s => {
+        const card = document.createElement("div");
+        card.className = "story-card flex flex-col";
+        
+        // Ensure image URL is handled safely
+        const coverImg = s.cover_image || 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?q=80&w=500';
+        const storyTitle = s.title || "Untitled Record";
+        const storyId = s.id ? s.id.toString() : "00000000";
+
+        card.innerHTML = `
+          <div class="card-image-wrapper">
+            <img class="card-image" src="${coverImg}" alt="${storyTitle}" onerror="this.src='https://images.unsplash.com/photo-1516979187457-637abb4f9353?q=80&w=500'">
+            <div class="action-overlay">
+              <a href="/edit-story?id=${storyId}" class="btn-primary p-2 flex items-center justify-center" title="Edit Source">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                <span class="sr-only">Edit</span>
+              </a>
+              <button onclick="deleteStory('${storyId}')" class="bg-rose-600 text-white p-2 flex items-center justify-center hover:bg-rose-500 transition-colors" title="Purge Record">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                <span class="sr-only">Purge</span>
+              </button>
+            </div>
+          </div>
+          <div class="p-4 flex flex-col gap-1 bg-[#121214]">
+            <h3 class="text-xs font-semibold text-zinc-100 truncate tracking-tight uppercase">${storyTitle}</h3>
+            <div class="flex justify-between items-center mt-2">
+               <span class="text-[9px] font-mono text-zinc-600">ID: ${storyId.substring(0, 8)}...</span>
+               <span class="text-[9px] font-mono text-zinc-500 uppercase">Archive</span>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      updatePagination();
+    }
+
+    function updatePagination() {
+      const total = Math.ceil(filteredStories.length / perPage);
+      pagination.classList.toggle("hidden", total <= 1);
+      pageInfo.textContent = `PAGE ${currentPage.toString().padStart(2, '0')} / ${total.toString().padStart(2, '0')}`;
+      prevBtn.disabled = currentPage === 1;
+      nextBtn.disabled = currentPage === total;
+    }
+
+    prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; render(); window.scrollTo(0, 0); } };
+    nextBtn.onclick = () => { if (currentPage < Math.ceil(filteredStories.length / perPage)) { currentPage++; render(); window.scrollTo(0, 0); } };
+
+    document.getElementById("search").addEventListener("input", (e) => {
+      const val = e.target.value.toLowerCase();
+      filteredStories = allStories.filter(s => (s.title || "").toLowerCase().includes(val));
+      currentPage = 1;
+      render();
     });
 
-    updatePagination();
-  }
+    async function deleteStory(id) {
+      if (!confirm("PURGE_CONFIRM: Operation cannot be reversed. Proceed?")) return;
 
-  function updatePagination() {
-    const total = Math.ceil(allStories.length / perPage);
-
-    pagination.classList.toggle("hidden", total <= 1);
-
-    pageInfo.textContent = `Page ${currentPage} of ${total}`;
-
-    prevBtn.disabled = currentPage === 1;
-    nextBtn.disabled = currentPage === total;
-  }
-
-  prevBtn.onclick = () => {
-    if (currentPage > 1) {
-      currentPage--;
-      render();
+      try {
+        const res = await fetch(`/api/stories/${id}`, { 
+          method: "DELETE",
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (res.ok) {
+          allStories = allStories.filter(s => s.id.toString() !== id.toString());
+          filteredStories = filteredStories.filter(s => s.id.toString() !== id.toString());
+          totalCountEl.textContent = allStories.length.toString().padStart(2, '0');
+          render();
+        } else {
+          alert("PURGE_FAILED: Authority denied or record locked.");
+        }
+      } catch (err) {
+        console.error("Purge failure:", err);
+      }
     }
-  };
 
-  nextBtn.onclick = () => {
-    const total = Math.ceil(allStories.length / perPage);
-    if (currentPage < total) {
-      currentPage++;
-      render();
-    }
-  };
-
-  async function deleteStory(id) {
-    if (!confirm("Delete this story?")) return;
-
-    await fetch(`/api/stories/${id}`, { method: "DELETE" });
-
-    allStories = allStories.filter(s => s.id !== id);
-    render();
-  }
-
-  fetchStories();
-</script>
+    // Initialize
+    document.addEventListener('DOMContentLoaded', fetchStories);
+  </script>
 
 </body>
 </html>

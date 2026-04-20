@@ -3,24 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TheAdultWorld — Latest Stories</title>
-
+  <title>Story Studio | Archive</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="icon" type="image/x-icon" href="Logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" crossorigin="anonymous"></script>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
-
-    body {
-      font-family: "Lexend", sans-serif;
-      background-color: #0a0a0a;
-      margin: 0;
-      /* Changed from overflow: hidden to allow content after loading */
-      overflow-x: hidden; 
+    :root {
+      --bg-dark: #09090b;
+      --border: #27272a;
+      --panel-bg: #121214;
     }
 
-    /* 🔥 NEW Running Border Loader */
+    body {
+      background-color: var(--bg-dark);
+      color: #e4e4e7;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      overflow-x: hidden;
+      font-size: 13px;
+    }
+
+    * {
+      border-radius: 0 !important;
+    }
+
+    /* 🔥 Circular Loader Styles */
     #loader {
       position: fixed;
       inset: 0;
@@ -31,32 +41,37 @@
       z-index: 9999;
     }
 
+    /* Hide loader via class for session handling */
+    #loader.hidden-session {
+      display: none !important;
+    }
+
     .loader-box {
-      width: 180px;
-      height: 180px;
+      width: 200px;
+      height: 200px;
       position: relative;
       display: flex;
       justify-content: center;
       align-items: center;
-      /* Added border-radius for modern look */
-      overflow: hidden; /* Crucial: Hides the rotating pseudo-element outside the box */
+      border-radius: 50% !important; /* Forces circular shape */
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .loader-box img {
-      width: 95%;
-      height: 95%;
+      width: 92%;
+      height: 92%;
       z-index: 2;
-      /* Added border-radius to match the box */
+      filter: grayscale(1) brightness(2);
+      border-radius: 50% !important;
     }
 
-    /* Animated Border Line Container */
     .border-runner {
       position: absolute;
-      inset: -5px; /* Increase inset to ensure the animated border is visible outside the overflow:hidden area */
-      /* No change, but the animation is applied to the pseudo-element */
+      inset: 0;
+      border-radius: 50% !important;
     }
 
-    /* The actual emerging line is a spinning border on a larger pseudo-element */
     .border-runner::before {
       content: "";
       position: absolute;
@@ -64,97 +79,185 @@
       height: 200%;
       top: -50%;
       left: -50%;
-      /* Creates a conical gradient for the emerging line effect */
-      background: conic-gradient(transparent 0%, rgb(208, 73, 0) 100%, rgb(208, 73, 0) 100%);
-      animation: borderRunEmerging 1.5s linear infinite;
+      background: conic-gradient(transparent 30%, #ffffff 100%);
+      animation: borderRunEmerging 1.2s linear infinite;
     }
 
-    /* KEYFRAMES for the Emerging Line Effect */
     @keyframes borderRunEmerging {
-        /* Rotate the large background to make the white part (the "line") appear to run around the edge */
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
 
-    /* MAIN CONTENT APPEAR */
     #main-content { opacity: 0; transition: opacity 0.8s ease; }
     #main-content.visible { opacity: 1; }
+    #main-content.no-transition { transition: none !important; }
 
-    /* Story Cards - Keep original styles */
+    /* Button Styles */
+    .btn-icon {
+      background: #18181b;
+      border: 1px solid var(--border);
+      color: #a1a1aa;
+      transition: all 0.2s;
+    }
+
+    .btn-icon:hover {
+      border-color: #52525b;
+      color: #f4f4f5;
+      background: #27272a;
+    }
+
+    /* Search Input Style */
+    .search-container {
+      position: relative;
+      background: #18181b;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+
+    .search-container:focus-within {
+      border-color: #52525b;
+      background: #27272a;
+    }
+
+    #search-input {
+      background: transparent;
+      outline: none;
+      color: #f4f4f5;
+      width: 100%;
+    }
+
+    #search-input::placeholder {
+      color: #52525b;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.05em;
+    }
+
+    /* Story Cards */
     .story-card {
       position: relative;
-      height: 350px;
+      aspect-ratio: 2/3;
       background-size: cover;
       background-position: center;
-      background-repeat: no-repeat;
-      border: 1px solid rgba(255,255,255,0.1);
-      transition: .3s;
-      overflow: hidden;
+      border: 1px solid var(--border);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       cursor: pointer;
+      background-color: #121214;
     }
 
     .story-card:hover {
-      transform: scale(1.03);
-      box-shadow: 0 0 20px rgba(255,255,255,.15);
+      border-color: #71717a;
+      transform: translateY(-4px);
     }
 
-    @media (min-width: 1024px) {
-      .story-card { height: 420px; }
+    .card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(9,9,11,0.95) 0%, transparent 60%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 16px;
+      opacity: 0.9;
+      transition: opacity 0.3s;
+    }
+
+    .story-card:hover .card-overlay {
+      opacity: 1;
+    }
+
+    .mono-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #71717a;
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.2;
+      cursor: not-allowed;
     }
   </style>
 </head>
 
-<body class="text-white">
+<body class="flex flex-col">
 
-  <!-- 🔥 NEW MINIMAL RUNNING BORDER LOADER -->
+  <!-- CIRCULAR LOADER -->
   <div id="loader">
     <div class="loader-box">
-      <img src="Logo.png" alt="">
+      <img src="Logo.png" alt="Logo">
       <div class="border-runner"></div>
     </div>
   </div>
 
+  <!-- NAV -->
+  <header class="h-12 border-b border-[#27272a] flex items-center justify-between px-6 bg-[#09090b] shrink-0 sticky top-0 z-50">
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-5 h-5 bg-white flex items-center justify-center text-[10px] text-black font-bold">S</div>
+        <span class="font-medium text-sm tracking-tight text-white">StoryStudio</span>
+      </div>
+      <div class="h-4 w-[1px] bg-zinc-800"></div>
+      <nav class="flex gap-4">
+        <a href="/" class="text-zinc-200 transition-colors text-xs font-medium">Dashboard</a>
+        <a href="/manage" class="text-zinc-500 hover:text-zinc-200 transition-colors text-xs">Stories</a>
+      </nav>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="hidden sm:flex items-center search-container h-8 px-3 gap-2 w-48 lg:w-64">
+        <i class="fa-solid fa-magnifying-glass text-[10px] text-zinc-500"></i>
+        <input type="text" id="search-input" placeholder="Search archive..." autocomplete="off">
+      </div>
+      <a href="/write" class="btn-icon w-8 h-8 flex items-center justify-center" title="New Archive">
+        <i class="fa-solid fa-pen-nib text-[10px]"></i>
+      </a>
+      <a href="/manage" class="btn-icon w-8 h-8 flex items-center justify-center" title="System Settings">
+        <i class="fa-solid fa-gear text-[10px]"></i>
+      </a>
+    </div>
+  </header>
+
   <!-- MAIN CONTENT -->
-  <div id="main-content" class="w-full bg-black p-4 border border-gray-800 shadow-xl">
-
-    <!-- HEADER -->
-    <div class="flex flex-col sm:flex-row justify-between items-center mb-10">
-      <h1 class="text-4xl sm:text-5xl font-extrabold">Latest Stories</h1>
-
-      <div class="flex space-x-4 mt-6 sm:mt-0">
-        <a href="/write">
-          <button class="px-5 py-3 bg-blue-600 hover:bg-blue-700 border border-blue-500 rounded shadow-lg">
-            <i class="fa-solid fa-pen-nib text-xl"></i>
-          </button>
-        </a>
-
-        <a href="/manage">
-          <button class="px-5 py-3 bg-green-600 hover:bg-green-700 border border-green-500 rounded shadow-lg">
-            <i class="fa-solid fa-gear text-xl"></i>
-          </button>
-        </a>
+  <main id="main-content" class="flex-1 mx-auto w-full p-6 sm:p-10">
+    
+    <div class="mb-12 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+      <div>
+        <p class="mono-label mb-2">Available Archives</p>
+        <h1 class="text-2xl font-semibold text-white tracking-tight">Latest Stories</h1>
+        <div class="h-[1px] w-12 bg-zinc-700 mt-6"></div>
+      </div>
+      
+      <!-- Mobile Search -->
+      <div class="sm:hidden flex items-center search-container h-10 px-4 gap-3 w-full">
+        <i class="fa-solid fa-magnifying-glass text-xs text-zinc-500"></i>
+        <input type="text" id="search-input-mobile" class="bg-transparent outline-none text-white w-full" placeholder="Search archive...">
       </div>
     </div>
 
     <!-- STORY GRID -->
-    <div id="story-list" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
-      <p id="loading-message" class="col-span-full text-center text-gray-400">Loading stories...</p>
+    <div id="story-list" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <div id="loading-message" class="col-span-full py-20 text-center flex flex-col items-center gap-4">
+        <div class="w-6 h-6 border-2 border-zinc-800 border-t-zinc-400 animate-spin"></div>
+        <p class="mono-label">Synchronizing Database...</p>
+      </div>
     </div>
 
     <!-- PAGINATION -->
-    <div id="pagination" class="flex justify-center items-center space-x-4 mt-10 hidden">
-      <button id="btn-prev" class="px-5 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded">
-        <i class="fa-solid fa-angle-left text-lg"></i>
+    <div id="pagination" class="hidden mt-16 pt-8 border-t border-zinc-900 flex justify-center items-center gap-1">
+      <button id="btn-prev" class="pagination-btn btn-icon w-10 h-10 flex items-center justify-center">
+        <i class="fa-solid fa-angle-left"></i>
       </button>
-
-      <span id="page-info" class="text-gray-300"></span>
-
-      <button id="btn-next" class="px-5 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded">
-        <i class="fa-solid fa-angle-right text-lg"></i>
+      <div class="px-6 h-10 border border-zinc-800 flex items-center">
+         <span id="page-info" class="mono-label text-zinc-400">PAGE 01 / 01</span>
+      </div>
+      <button id="btn-next" class="pagination-btn btn-icon w-10 h-10 flex items-center justify-center">
+        <i class="fa-solid fa-angle-right"></i>
       </button>
     </div>
 
-  </div>
+  </main>
 
 <script>
   const storyList = document.getElementById("story-list");
@@ -164,17 +267,19 @@
   const prevBtn = document.getElementById("btn-prev");
   const nextBtn = document.getElementById("btn-next");
   const pageInfo = document.getElementById("page-info");
+  
+  const searchInput = document.getElementById("search-input");
+  const searchInputMobile = document.getElementById("search-input-mobile");
 
   let allStories = [];
+  let filteredStories = [];
   let currentPage = 1;
   let perPage = 20;
 
   function updatePerPage() {
     const w = window.innerWidth;
-
-    if (w < 640) perPage = 20;
-    else if (w < 1024) perPage = 21;
-    else if (w < 1280) perPage = 20;
+    if (w < 640) perPage = 10;
+    else if (w < 1024) perPage = 15;
     else perPage = 20;
   }
 
@@ -184,39 +289,61 @@
   });
 
   async function fetchStories() {
-    loadingMsg.classList.remove("hidden");
-
     try {
       const res = await fetch("/api/stories");
       allStories = await res.json();
-
+      filteredStories = [...allStories];
       updatePerPage();
       render();
     } catch {
-      storyList.innerHTML = `<p class='col-span-full text-red-500'>Failed to load stories.</p>`;
+      storyList.innerHTML = `<div class='col-span-full py-20 text-center'><p class="mono-label text-rose-900">ERR_SYNC_FAILED</p></div>`;
     }
+  }
+
+  function handleSearch(query) {
+    const term = query.toLowerCase().trim();
+    filteredStories = allStories.filter(s => 
+      s.title.toLowerCase().includes(term)
+    );
+    currentPage = 1;
+    render();
+  }
+
+  searchInput.addEventListener('input', (e) => {
+    if (searchInputMobile) searchInputMobile.value = e.target.value;
+    handleSearch(e.target.value);
+  });
+
+  if (searchInputMobile) {
+    searchInputMobile.addEventListener('input', (e) => {
+      searchInput.value = e.target.value;
+      handleSearch(e.target.value);
+    });
   }
 
   function render() {
     storyList.innerHTML = "";
-    loadingMsg.classList.add("hidden");
-
     const start = (currentPage - 1) * perPage;
-    const items = allStories.slice(start, start + perPage);
+    const items = filteredStories.slice(start, start + perPage);
 
     if (items.length === 0) {
-      storyList.innerHTML = `<p class='col-span-full text-gray-500'>Loading..</p>`;
+      if (allStories.length > 0) {
+        storyList.innerHTML = `<div class='col-span-full py-20 text-center'><p class="mono-label text-zinc-600">NO_MATCHING_RECORDS_FOUND</p></div>`;
+      }
+      updatePaginationUI();
       return;
     }
 
     items.forEach(s => {
       const card = document.createElement("div");
-      card.className = "story-card";
-      card.style.backgroundImage = `url('${s.cover_image || "default.jpg"}')`;
+      card.className = "story-card group";
+      const cover = s.cover_image || "https://images.unsplash.com/photo-1516979187457-637abb4f9353?q=80&w=500";
+      card.style.backgroundImage = `url('${cover}')`;
 
       card.innerHTML = `
-        <div class="absolute bottom-0 w-full bg-black/60 p-3">
-          <h3 class="font-semibold text-sm truncate">${s.title}</h3>
+        <div class="card-overlay">
+          <p class="mono-label text-zinc-500 mb-1">RECORD_ID_${(s.id % 9999).toString().padStart(4, '0')}</p>
+          <h3 class="font-medium text-sm text-white line-clamp-2 leading-snug group-hover:text-zinc-300 transition-colors uppercase tracking-tight">${s.title}</h3>
         </div>
       `;
 
@@ -228,28 +355,42 @@
   }
 
   function updatePaginationUI() {
-    const totalPages = Math.ceil(allStories.length / perPage);
-
+    const totalPages = Math.ceil(filteredStories.length / perPage);
     pagination.classList.toggle("hidden", totalPages <= 1);
-    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-
+    pageInfo.textContent = `PAGE ${currentPage.toString().padStart(2, '0')} / ${Math.max(1, totalPages).toString().padStart(2, '0')}`;
     prevBtn.disabled = currentPage <= 1;
     nextBtn.disabled = currentPage >= totalPages;
   }
 
-  prevBtn.onclick = () => { currentPage--; render(); };
-  nextBtn.onclick = () => { currentPage++; render(); };
+  prevBtn.onclick = () => { if(currentPage > 1) { currentPage--; render(); window.scrollTo(0,0); } };
+  nextBtn.onclick = () => { if(currentPage < Math.ceil(filteredStories.length / perPage)) { currentPage++; render(); window.scrollTo(0,0); } };
 
+  // SESSION-BASED LOADER LOGIC
   window.addEventListener("load", () => {
     const loader = document.getElementById("loader");
     const main = document.getElementById("main-content");
+    const hasSeenLoader = sessionStorage.getItem("loader_viewed");
 
-    setTimeout(() => {
+    if (hasSeenLoader) {
+      // Skip animation
       loader.remove();
       document.body.style.overflow = "auto";
+      main.classList.add("no-transition"); // Prevent initial fade-in lag
       main.classList.add("visible");
       fetchStories();
-    }, 1000);
+    } else {
+      // Show animation for the first time
+      setTimeout(() => {
+        loader.style.opacity = "0";
+        setTimeout(() => {
+          loader.remove();
+          document.body.style.overflow = "auto";
+          main.classList.add("visible");
+          fetchStories();
+          sessionStorage.setItem("loader_viewed", "true");
+        }, 500);
+      }, 1200);
+    }
   });
 </script>
 

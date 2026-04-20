@@ -1,87 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Read Story</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Story Studio | Reader</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="index.css">
-  <link rel="icon" type="image/x-icon" href="Logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" crossorigin="anonymous"></script>
+  
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
-    body {
-      font-family: "Lexend", sans-serif;
-      background-color: #0a0a0a;
-      color: white;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+    :root {
+      --bg-dark: #09090b;
+      --border: #27272a;
+      --panel-bg: #121214;
     }
+
+    body {
+      background-color: var(--bg-dark);
+      color: #e4e4e7;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    * {
+      border-radius: 0 !important;
+    }
+
+    .btn-icon {
+      background: #18181b;
+      border: 1px solid var(--border);
+      color: #a1a1aa;
+      transition: all 0.2s;
+    }
+
+    .btn-icon:hover:not(:disabled) {
+      border-color: #52525b;
+      color: #f4f4f5;
+      background: #27272a;
+    }
+
+    .btn-icon:disabled {
+      opacity: 0.2;
+      cursor: not-allowed;
+    }
+
     #story img, #story video, #story iframe {
       max-width: 100%;
       height: auto;
       display: block;
-      margin: 1rem auto;
-      border: 2px solid #444;
-    }
-    #story {
-      padding-bottom: 80px;
+      margin: 2rem auto;
+      border: 1px solid var(--border);
+      opacity: 0.9;
     }
 
-    /* 👇 Uniform paragraph styling */
-    .story-content p {
-      margin-top: 1.2rem;
-      margin-bottom: 1.2rem;
-      line-height: 1.4;
-      text-align: justify;
-      white-space: pre-line; /* preserves line breaks */
-    }
-
+    /* Improved content styling to preserve original formatting */
     .story-content {
       word-wrap: break-word;
+      max-width: 100%;
+      white-space: pre-wrap; /* Preserves line breaks and spaces */
+      line-height: 1.5;
+      color: #d4d4d8;
+      font-size: 0.9rem;
+      text-align: left; /* Changed from justify to better respect manual line breaks */
+    }
+
+    .story-content p {
+      margin-bottom: 1.5rem;
+    }
+
+    .mono-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #71717a;
+    }
+
+    header {
+      background: rgba(9, 9, 11, 0.8);
+      backdrop-filter: blur(8px);
     }
   </style>
 </head>
-<body class="min-h-screen text-white flex flex-col items-center justify-start p-0 sm:p-6 lg:p-8">
+<body class="flex flex-col items-center">
 
-  <div class="max-w-3xl w-full bg-black p-2 md:p-2 border border-gray-800 shadow-2xl">
-    <div id="story" class="space-y-6">
-      <p class="text-center text-gray-400 text-lg" id="loading-message">Loading story...</p>
+  <!-- NAV -->
+  <header class="w-full h-12 border-b border-[#27272a] flex items-center justify-between px-6 shrink-0 sticky top-0 z-50">
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-5 h-5 bg-white flex items-center justify-center text-[10px] text-black font-bold">S</div>
+        <span class="font-medium text-sm tracking-tight text-white">StoryStudio</span>
+      </div>
+      <div class="h-4 w-[1px] bg-zinc-800"></div>
+      <nav class="flex gap-4">
+        <a href="/" class="text-zinc-500 hover:text-zinc-200 transition-colors text-xs">Dashboard</a>
+        <a href="/manage" class="text-zinc-500 hover:text-zinc-200 transition-colors text-xs">Stories</a>
+      </nav>
+    </div>
+    <div class="flex items-center gap-4">
+       <span class="mono-label hidden sm:inline">Reader Mode</span>
+    </div>
+  </header>
+
+  <main class="max-w-5xl w-full px-6 py-12 sm:py-20 flex flex-col min-h-screen">
+    <div id="story" class="flex flex-col">
+      <div id="loading-container" class="py-20 text-center flex flex-col items-center gap-4">
+        <div class="w-6 h-6 border-2 border-zinc-800 border-t-zinc-400 animate-spin"></div>
+        <p class="mono-label">Initializing Reader...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Pagination Controls -->
+  <div id="pagination-controls" class="fixed bottom-0 left-0 w-full bg-[#09090b]/90 backdrop-blur-md border-t border-zinc-800 p-2 flex justify-center items-center z-50 hidden">
+    <div class="max-w-3xl w-full flex justify-between items-center px-2">
+      <button id="prev-page" class="btn-icon w-10 h-10 flex items-center justify-center">
+        <i class="fa-solid fa-arrow-left text-sm"></i>
+      </button>
+
+      <div class="flex flex-col items-center">
+        <span id="page-info" class="mono-label text-zinc-400">PAGE 01 / 01</span>
+      </div>
+
+      <button id="next-page" class="btn-icon w-10 h-10 flex items-center justify-center">
+        <i class="fa-solid fa-arrow-right text-sm"></i>
+      </button>
     </div>
   </div>
 
-  <!-- Pagination Controls -->
-  <div id="pagination-controls" class="fixed bottom-0 left-0 w-full bg-black border-t border-gray-800 p-4 flex justify-between items-center z-50 hidden">
-  
-  <!-- Previous Button -->
-  <button id="prev-page" 
-    class="w-10 h-10 flex items-center justify-center rounded-full bg-blue-700 border-2 border-blue-600 text-white disabled:opacity-50">
-    <i class="fa-solid fa-arrow-left text-lg"></i>
-  </button>
-
-  <!-- Page Info -->
-  <span id="page-info" class="text-gray-400 text-sm"></span>
-
-  <!-- Next Button -->
-  <button id="next-page" 
-    class="w-10 h-10 flex items-center justify-center rounded-full bg-green-700 border-2 border-green-600 text-white disabled:opacity-50">
-    <i class="fa-solid fa-arrow-right text-lg"></i>
-  </button>
-
-</div>
-
-
-  <div id="custom-message-box" class="fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100] transition-transform duration-300 transform translate-x-full hidden"></div>
+  <div id="custom-message-box" class="fixed top-14 right-4 p-4 text-white text-xs font-mono shadow-lg z-[100] transition-transform duration-300 transform translate-x-full hidden border border-zinc-800"></div>
 
   <script>
     function showCustomMessage(message, type = "info") {
       const messageBox = document.getElementById('custom-message-box');
       if (!messageBox) return;
       messageBox.textContent = message;
-      messageBox.className = `fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg z-[100] transition-transform duration-300 transform translate-x-0`;
-      if (type === "error") messageBox.classList.add('bg-red-600');
-      else if (type === "success") messageBox.classList.add('bg-green-600');
-      else messageBox.classList.add('bg-blue-600');
+      messageBox.className = `fixed top-14 right-4 p-4 text-white text-xs font-mono shadow-lg z-[100] transition-transform duration-300 transform translate-x-0 border`;
+      
+      if (type === "error") {
+        messageBox.classList.add('bg-rose-950', 'text-rose-200', 'border-rose-900');
+      } else if (type === "success") {
+        messageBox.classList.add('bg-emerald-950', 'text-emerald-200', 'border-emerald-900');
+      } else {
+        messageBox.classList.add('bg-zinc-900', 'text-zinc-200', 'border-zinc-700');
+      }
+      
       messageBox.classList.remove('hidden');
       setTimeout(() => {
         messageBox.classList.add('translate-x-full');
@@ -94,61 +161,93 @@
     const storyId = new URLSearchParams(location.search).get('id');
     let storyPages = [];
     let currentPage = 0;
+    let storyTitle = "";
 
     async function fetchStory() {
       const storyDiv = document.getElementById('story');
-      const loadingMessage = document.getElementById('loading-message');
       const pagination = document.getElementById('pagination-controls');
 
       try {
-        if (loadingMessage) loadingMessage.style.display = 'block';
-
         const response = await fetch(`/api/stories/${storyId}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const story = await response.json();
+        
+        storyTitle = story.title || "Untitled Record";
 
-        if (loadingMessage) loadingMessage.style.display = 'none';
-
-        // Normalize content spacing 👇
-        const normalizedContent = story.content
-          .replace(/\r\n/g, "\n") // normalize line breaks
-          .replace(/\n{3,}/g, "\n\n") // remove extra empty lines
-          .split("\n\n") // split paragraphs
-          .map(p => `<p>${p.trim()}</p>`) // wrap in <p>
-          .join("");
-
-        const maxCharsPerPage = 10000;
-        for (let i = 0; i < normalizedContent.length; i += maxCharsPerPage) {
-          storyPages.push(normalizedContent.slice(i, i + maxCharsPerPage));
+        // Preserve formatting: Normalize line breaks but keep structure
+        const content = story.content || "";
+        
+        // We use a lighter normalization to ensure pages are split reasonably 
+        // without destroying paragraph indentations or specific line matching.
+        const maxCharsPerPage = 20000; 
+        storyPages = [];
+        
+        if (content.length <= maxCharsPerPage) {
+          storyPages.push(content);
+        } else {
+          // Attempt to split at a double newline to avoid cutting paragraphs
+          let remaining = content;
+          while (remaining.length > 0) {
+            if (remaining.length <= maxCharsPerPage) {
+              storyPages.push(remaining);
+              break;
+            }
+            let chunk = remaining.slice(0, maxCharsPerPage);
+            let lastNewline = chunk.lastIndexOf("\n\n");
+            if (lastNewline === -1) lastNewline = chunk.lastIndexOf("\n");
+            
+            const splitPoint = lastNewline > maxCharsPerPage * 0.7 ? lastNewline : maxCharsPerPage;
+            storyPages.push(remaining.slice(0, splitPoint));
+            remaining = remaining.slice(splitPoint).trimStart();
+          }
         }
 
-        renderPage(0, story.title);
+        if (storyPages.length === 0) storyPages.push("No content available for this record.");
+
+        renderPage(0);
         if (storyPages.length > 1) pagination.classList.remove('hidden');
       } catch (error) {
         console.error('Failed to fetch story:', error);
-        storyDiv.innerHTML = '<p class="text-center text-red-400 text-lg">Failed to load story. Please try again later.</p>';
-        showCustomMessage("Failed to load story. Please try again later.", "error");
+        storyDiv.innerHTML = `
+          <div class="py-20 text-center flex flex-col items-center gap-4">
+            <p class="mono-label text-rose-900">CRITICAL_FETCH_FAILURE: UNABLE_TO_RETRIEVE_SOURCE</p>
+          </div>
+        `;
+        showCustomMessage("Failed to load record.", "error");
       }
     }
 
-    function renderPage(pageIndex, title) {
+    function renderPage(pageIndex) {
       const storyDiv = document.getElementById('story');
       const pageInfo = document.getElementById('page-info');
       const prevBtn = document.getElementById('prev-page');
       const nextBtn = document.getElementById('next-page');
 
       storyDiv.innerHTML = `
-        <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4 text-center">${title}</h1>
-        <div class="story-content text-gray-300 text-lg leading-relaxed">
-          ${storyPages[pageIndex]}
+        <div class="mb-12">
+          <p class="mono-label mb-2">Source Archive</p>
+          <h1 class="text-3xl sm:text-4xl font-semibold text-white tracking-tight">${storyTitle}</h1>
+          <div class="h-[1px] w-12 bg-zinc-700 mt-6"></div>
         </div>
+        <div class="story-content">${storyPages[pageIndex]}</div>
       `;
 
-      pageInfo.textContent = `Page ${pageIndex + 1} of ${storyPages.length}`;
+      // Post-process any video tags to ensure they autoplay, loop, and are muted
+      const videos = storyDiv.querySelectorAll('video');
+      videos.forEach(video => {
+        video.setAttribute('autoplay', '');
+        video.setAttribute('loop', '');
+        video.setAttribute('muted', '');
+        video.setAttribute('playsinline', ''); // Essential for autoplay on mobile
+        video.muted = true;
+        video.play().catch(e => console.log("Autoplay blocked or failed:", e));
+      });
+
+      pageInfo.textContent = `PAGE ${(pageIndex + 1).toString().padStart(2, '0')} / ${storyPages.length.toString().padStart(2, '0')}`;
       prevBtn.disabled = pageIndex === 0;
       nextBtn.disabled = pageIndex === storyPages.length - 1;
 
-      storyDiv.scrollIntoView({ behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -157,14 +256,14 @@
       document.getElementById('prev-page').addEventListener('click', () => {
         if (currentPage > 0) {
           currentPage--;
-          renderPage(currentPage, document.querySelector('#story h1').textContent);
+          renderPage(currentPage);
         }
       });
 
       document.getElementById('next-page').addEventListener('click', () => {
         if (currentPage < storyPages.length - 1) {
           currentPage++;
-          renderPage(currentPage, document.querySelector('#story h1').textContent);
+          renderPage(currentPage);
         }
       });
     });

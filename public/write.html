@@ -3,190 +3,376 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/x-icon" href="Logo.png">
-  <title>Write Story</title>
+  <title>Story Studio | Create</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="index.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+
   <style>
+    :root {
+      --accent: #3b82f6;
+      --bg-dark: #09090b;
+      --panel-bg: #121214;
+      --border: #27272a;
+    }
+
     body {
+      background-color: var(--bg-dark);
+      color: #e4e4e7;
       font-family: 'Inter', sans-serif;
-      background-color: #0a0a0a;
-      color: white;
+      overflow: hidden;
+      font-size: 13px; /* Global smaller font size */
     }
-    button, a {
-      border-radius: 0 !important;
-      transition: none !important;
+
+    .glass {
+      background: rgba(18, 18, 20, 0.8);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
     }
-    .btn-blue { background-color: #007bff; border: 2px solid #007bff; color: white; }
-    .btn-green { background-color: #00a65a; border: 2px solid #00a65a; color: white; }
-    .btn-red { background-color: #d9534f; border: 2px solid #d9534f; color: white; }
+
+    .input-field {
+      background: #18181b;
+      border: 1px solid var(--border);
+      transition: all 0.15s ease;
+      font-size: 12px;
+    }
+
+    .input-field:focus {
+      border-color: #52525b;
+      outline: none;
+    }
+
+    textarea {
+      font-family: 'Inter', sans-serif;
+      line-height: 1.7;
+      font-size: 14px; /* Slightly larger for readability, but still minimal */
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 10px;
+    }
+
+    .btn-primary {
+      background-color: #f4f4f5;
+      color: #09090b;
+      transition: opacity 0.2s;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+    }
+
+    .btn-secondary {
+      background-color: transparent;
+      border: 1px solid var(--border);
+      color: #a1a1aa;
+    }
+
+    .btn-secondary:hover {
+      border-color: #52525b;
+      color: #f4f4f5;
+    }
+
+    .cover-preview-box {
+      width: 100%;
+      height: auto;
+      background: #09090b;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .cover-preview-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.4;
+    }
+    .cover-preview-box:hover img {
+      opacity: 1;
+    }
+
+    /* Minimalist layout tweaks */
+    .sidebar-label {
+      color: #71717a;
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .mediaPreview img, .mediaPreview iframe, .mediaPreview video {
+      background: #09090b;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      height: auto;
+      justify-content: center;
+    }
   </style>
 </head>
 
-<body class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+<body class="h-screen flex flex-col">
 
-  <div class="max-w-3xl w-full bg-black p-6 border-2 border-gray-800 shadow-2xl">
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-8 text-center leading-tight">
-      Write a New Story
-    </h1>
-
-    <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-10">
-      <a href="/">
-        <button class="btn-blue py-3 px-8 font-bold w-full sm:w-auto">Home</button>
-      </a>
-      <a href="/manage">
-        <button class="btn-blue py-3 px-8 font-bold w-full sm:w-auto">Manage Stories</button>
-      </a>
-    </div>
-
-    <!-- FORM -->
-    <form id="storyForm" class="flex flex-col gap-4">
-
-      <input type="text" id="title" placeholder="Title" required class="p-3 bg-black text-white border-2 border-gray-700">
-
-      <!-- COVER IMAGE INPUT -->
-      <input type="text" id="coverImage" placeholder="Cover Image URL" class="p-3 bg-black text-white border-2 border-gray-700">
-
-      <textarea id="content" placeholder="Write your story here..." rows="10" required class="p-3 bg-black text-white border-2 border-gray-700 resize-y"></textarea>
-
-      <div class="buttons flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mt-4">
-        <button type="button" onclick="openPopup()" class="btn-green w-full sm:w-auto py-3 px-8 font-bold">➕ Insert Media</button>
-        <button type="submit" class="btn-blue w-full sm:w-auto py-3 px-8 font-bold">Post Story</button>
+  <!-- MINIMAL NAV -->
+  <header class="h-12 border-b border-[#27272a] flex items-center justify-between px-6 bg-[#09090b] shrink-0">
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-5 h-5 bg-white rounded flex items-center justify-center text-[10px] text-black font-bold">S</div>
+        <span class="font-medium text-sm tracking-tight text-white">StoryStudio</span>
       </div>
-    </form>
-  </div>
+      <div class="h-4 w-[1px] bg-zinc-800"></div>
+      <nav class="flex gap-4">
+        <a href="/" class="text-zinc-500 hover:text-zinc-200 transition-colors text-xs">Dashboard</a>
+        <a href="/manage" class="text-zinc-500 hover:text-zinc-200 transition-colors text-xs">Stories</a>
+      </nav>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="text-[10px] text-zinc-600 font-mono" id="autosaveStatus">AUTOSAVED</span>
+      <button onclick="submitStory()" class="btn-primary px-3 py-1.5 rounded text-xs font-semibold tracking-wide">
+        Publish
+      </button>
+    </div>
+  </header>
 
-  <!-- Media Popup -->
-  <div id="mediaModal" class="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center p-4 z-50 hidden overflow-y-auto">
-    <div class="bg-black p-6 w-full max-w-xl border-2 border-gray-700">
-      <h3 class="text-2xl font-semibold text-white mb-4">Insert Media</h3>
-      <input type="text" id="mediaURL" placeholder="Paste media link" class="w-full p-3 mb-4 bg-black text-white border-2 border-gray-700">
-      <div id="mediaPreview" class="mb-4 p-2 border-2 border-gray-700"></div>
+  <main class="flex-1 flex overflow-hidden">
 
-      <div class="flex justify-end space-x-3">
-        <button onclick="insertMediaFromPopup()" class="btn-blue py-2 px-6 font-bold">Insert</button>
-        <button onclick="closePopup()" class="btn-red py-2 px-6 font-bold">Cancel</button>
+    <!-- LEFT PANEL: CONFIG -->
+    <aside class="w-80 p-6 border-r border-zinc-800 flex flex-col gap-6 custom-scrollbar overflow-y-auto bg-[#09090b]">
+      <section>
+        <h2 class="text-xs font-semibold text-white mb-4">Metadata</h2>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="sidebar-label">Title</label>
+            <input type="text" id="title" placeholder="Story title..."
+              class="input-field p-2 rounded w-full text-zinc-200">
+          </div>
+
+          <div>
+            <label class="sidebar-label">Cover Image</label>
+            <input type="text" id="coverImage" placeholder="URL..."
+              class="input-field p-2 rounded w-full text-zinc-200 mb-3" oninput="updateCoverPreview(this.value)">
+            
+            <div id="coverPreviewContainer" class="cover-preview-box">
+               <svg class="h-4 w-4 text-zinc-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+               </svg>
+            </div>
+          </div>
+
+          <div>
+            <label class="sidebar-label">Tags</label>
+            <input type="text" id="tags" placeholder="Space separated..."
+              class="input-field p-2 rounded w-full text-zinc-200">
+          </div>
+        </div>
+      </section>
+
+      <div class="mt-auto">
+        <button onclick="openPopup()" class="w-full btn-secondary p-2 rounded text-[11px] font-medium flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" y1="5" x2="22" y2="5"/><line x1="19" y1="2" x2="19" y2="8"/></svg>
+          Insert Media
+        </button>
+      </div>
+    </aside>
+
+    <!-- RIGHT PANEL: EDITOR -->
+    <section class="flex-1 flex flex-col bg-[#0c0c0e] relative overflow-hidden">
+      <div class="flex-1 flex flex-col mx-auto w-full px-6 py-8 h-full">
+        <div class="mb-4 flex justify-between items-center shrink-0">
+          <div class="flex items-center gap-4">
+             <span class="text-[10px] text-zinc-500 font-mono" id="wordCount">WORDS: 0</span>
+             <span class="text-[10px] text-zinc-500 font-mono" id="charCount">CHARS: 0</span>
+          </div>
+        </div>
+
+        <div class="flex-1 overflow-hidden">
+            <textarea id="content"
+              placeholder="Begin your story..."
+              class="w-full h-full bg-transparent border-none resize-none focus:outline-none text-zinc-400 placeholder-zinc-700 custom-scrollbar"
+              oninput="updateCounts()"></textarea>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="fixed bottom-6 right-6 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- MEDIA MODAL -->
+  <div id="mediaModal"
+    class="fixed inset-0 bg-black/90 hidden z-50 flex justify-center items-center max-h-screen p-4 custom-scrollbar overflow-y-auto">
+
+    <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-lg w-[400px] shadow-2xl">
+      <h3 class="text-sm font-semibold mb-1 text-white">Insert Media</h3>
+      <p class="text-zinc-500 text-[11px] mb-4">Paste a direct link to an image or video.</p>
+
+      <input type="text" id="mediaURL"
+        placeholder="https://..."
+        class="w-full p-2 mb-4 input-field rounded">
+
+      <div id="mediaPreview" class="mb-4 mediaPreview rounded border border-zinc-800 bg-black height-auto flex items-center justify-center overflow-hidden">
+        <span class="text-zinc-700 text-[10px] font-mono uppercase">Preview Area</span>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="insertMediaFromPopup()" class="btn-primary flex-1 py-2 rounded text-[11px] font-bold">Insert</button>
+        <button onclick="closePopup()" class="btn-secondary px-4 py-2 rounded text-[11px] font-medium">Cancel</button>
       </div>
     </div>
   </div>
-
-  <div id="custom-message-box" class="fixed top-4 right-4 p-4 text-white text-lg font-semibold shadow-lg hidden"></div>
 
   <script>
-  function showCustomMessage(message, type = "info") {
-    const box = document.getElementById("custom-message-box");
-    box.textContent = message;
-    box.className = "fixed top-4 right-4 p-4 text-white text-lg font-semibold";
-    if (type === "error") box.classList.add("btn-red");
-    if (type === "success") box.classList.add("btn-green");
-    if (type === "info") box.classList.add("btn-blue");
-    box.classList.remove("hidden");
-    setTimeout(() => box.classList.add("hidden"), 3000);
-  }
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `px-4 py-2 rounded border text-[11px] font-medium shadow-xl bg-zinc-900 transition-all duration-300`;
+      
+      const colors = {
+        success: 'text-emerald-400 border-emerald-500/20',
+        error: 'text-rose-400 border-rose-500/20',
+        info: 'text-zinc-300 border-zinc-700'
+      };
 
-  document.getElementById("storyForm").addEventListener("submit", async e => {
-    e.preventDefault();
-
-    const title = document.getElementById("title").value.trim();
-    const content = document.getElementById("content").value.trim();
-    const coverImage = document.getElementById("coverImage").value.trim() || null;
-
-    if (!title || !content) {
-      showCustomMessage("Title & content required.", "error");
-      return;
+      toast.classList.add(...colors[type].split(' '));
+      toast.innerHTML = message;
+      
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(20px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
     }
 
-    const res = await fetch("/api/stories", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, content, cover_image: coverImage })
+    function updateCounts() {
+      const text = document.getElementById("content").value.trim();
+      const words = text ? text.split(/\s+/).length : 0;
+      const chars = text.length;
+      document.getElementById("wordCount").innerText = `WORDS: ${words}`;
+      document.getElementById("charCount").innerText = `CHARS: ${chars}`;
+    }
+
+    function updateCoverPreview(url) {
+      const container = document.getElementById('coverPreviewContainer');
+      if (!url.trim()) {
+        container.innerHTML = `<svg class="h-4 w-4 text-zinc-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>`;
+        return;
+      }
+
+      const img = new Image();
+      img.onload = () => container.innerHTML = `<img src="${url}" alt="Preview">`;
+      img.onerror = () => container.innerHTML = `<span class="text-rose-900 text-[9px] font-bold">ERROR</span>`;
+      img.src = url;
+    }
+
+    async function submitStory() {
+      const title = document.getElementById("title").value.trim();
+      const content = document.getElementById("content").value.trim();
+      const coverImage = document.getElementById("coverImage").value.trim() || null;
+      const tagsInput = document.getElementById("tags").value.trim();
+      const tags = tagsInput ? tagsInput.split(/\s+/).map(t => t.toLowerCase()).filter(t => t) : [];
+
+      if (!title || !content) {
+        showToast("Title and content required", "error");
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/stories", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, content, cover_image: coverImage, tags })
+        });
+
+        if (response.ok) {
+          showToast("Draft published", "success");
+          setTimeout(() => window.location.href = "/", 1000);
+        } else {
+          showToast("Server error", "error");
+        }
+      } catch (err) {
+        showToast("Network error", "error");
+      }
+    }
+
+    function openPopup() {
+      document.getElementById("mediaModal").style.display = "flex";
+      document.getElementById("mediaURL").focus();
+    }
+    
+    function closePopup() {
+      document.getElementById("mediaModal").style.display = "none";
+      document.getElementById("mediaURL").value = "";
+      document.getElementById("mediaPreview").innerHTML = `<span class="text-zinc-700 text-[10px] font-mono uppercase">Preview Area</span>`;
+    }
+
+    document.getElementById("mediaURL").addEventListener("input", function () {
+      const url = this.value.trim();
+      const preview = document.getElementById("mediaPreview");
+
+      if (!url) {
+        preview.innerHTML = `<span class="text-zinc-700 text-[10px] font-mono uppercase">Preview Area</span>`;
+        return;
+      }
+
+      if (url.includes("youtube.com") || url.includes("youtu.be")) {
+        let id = url.includes("v=") ? url.split("v=")[1]?.split("&")[0] : url.split("/").pop();
+        preview.innerHTML = `<iframe width="100%" height="120" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen></iframe>`;
+      } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+        preview.innerHTML = `<video controls src="${url}" class="w-full h-auto"></video>`;
+      } else {
+        const img = new Image();
+        img.onload = () => preview.innerHTML = `<img src="${url}" class="w-full h-auto object-cover">`;
+        img.onerror = () => preview.innerHTML = `<span class='text-rose-900 text-[9px] font-bold'>INVALID URL</span>`;
+        img.src = url;
+      }
     });
 
-    if (res.ok) {
-      showCustomMessage("Story posted!", "success");
-      setTimeout(() => window.location.href = "/", 1000);
-    } else {
-      showCustomMessage("Failed to post story.", "error");
+    function insertMediaFromPopup() {
+      const url = document.getElementById("mediaURL").value.trim();
+      if (!url) return;
+
+      let tag = "";
+      if (url.includes("youtube.com") || url.includes("youtu.be")) {
+        let id = url.includes("v=") ? url.split("v=")[1]?.split("&")[0] : url.split("/").pop();
+        tag = `\n<div class="embed"><iframe src="https://www.youtube.com/embed/${id}"></iframe></div>\n`;
+      } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+        tag = `\n<video controls src="${url}"></video>\n`;
+      } else {
+        tag = `\n<img src="${url}" alt="Story media">\n`;
+      }
+
+      const textarea = document.getElementById("content");
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+      textarea.value = text.substring(0, start) + tag + text.substring(end);
+      
+      updateCounts();
+      closePopup();
+      showToast("Media added");
     }
-  });
-
-  function openPopup() {
-    const modal = document.getElementById("mediaModal");
-    modal.style.display = "flex";
-
-    // Reset fields when opened
-    document.getElementById("mediaURL").value = "";
-    document.getElementById("mediaPreview").innerHTML = "";
-  }
-
-  function closePopup() {
-    document.getElementById("mediaModal").style.display = "none";
-  }
-
-  document.getElementById("mediaURL").addEventListener("input", function () {
-    const url = this.value.trim();
-    const preview = document.getElementById("mediaPreview");
-    let p = "";
-
-    if (!url) {
-      preview.innerHTML = "";
-      return;
-    }
-
-    if (url.includes("youtube.com/watch?v=")) {
-      const id = url.split("v=")[1].split("&")[0];
-      p = `<iframe width="100%" height="250" src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe>`;
-    } 
-    else if (url.match(/\.(mp4|webm|ogg)$/i)) {
-      p = `<video controls src="${url}" class="w-full"></video>`;
-    } 
-    else {
-      p = `<img src="${url}" class="w-full">`;
-    }
-
-    preview.innerHTML = p;
-  });
-
-  // Insert at cursor position
-  function insertAtCursor(textarea, text) {
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const before = textarea.value.substring(0, start);
-    const after = textarea.value.substring(end);
-    textarea.value = before + text + after;
-
-    // Move cursor after inserted content
-    textarea.selectionStart = textarea.selectionEnd = start + text.length;
-  }
-
-  function insertMediaFromPopup() {
-    const url = document.getElementById("mediaURL").value.trim();
-    const preview = document.getElementById("mediaPreview");
-    if (!url) return;
-
-    let tag = "";
-
-    if (url.includes("youtube.com")) {
-      const id = url.split("v=")[1].split("&")[0];
-      tag = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${id}"></iframe>`;
-    } 
-    else if (url.match(/\.(mp4|webm|ogg)$/i)) {
-      tag = `<video controls src="${url}" style="width:100%"></video>`;
-    } 
-    else {
-      tag = `<img src="${url}" style="width:100%">`;
-    }
-
-    const textarea = document.getElementById("content");
-    insertAtCursor(textarea, "\n" + tag + "\n");
-
-    // Reset modal for next use
-    document.getElementById("mediaURL").value = "";
-    preview.innerHTML = "";
-
-    closePopup();
-  }
-</script>
+  </script>
 
 </body>
 </html>
