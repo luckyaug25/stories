@@ -65,7 +65,7 @@
       line-height: 1.5;
       color: #d4d4d8;
       font-size: 0.9rem;
-      text-align: left; /* Changed from justify to better respect manual line breaks */
+      text-align: left;
     }
 
     .story-content p {
@@ -83,6 +83,59 @@
     header {
       background: rgba(9, 9, 11, 0.8);
       backdrop-filter: blur(8px);
+    }
+
+    /* Individual Box Style for Pagination */
+    .page-box {
+      background: #18181b;
+      border: 1px solid var(--border);
+      color: #a1a1aa;
+      min-width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .page-box:hover {
+      border-color: #52525b;
+      color: #f4f4f5;
+      background: #27272a;
+    }
+
+    .page-box.active {
+      background: #27272a;
+      border-color: #71717a;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .page-jump-input {
+      background: #18181b;
+      border: 1px solid var(--border);
+      color: #f4f4f5;
+      width: 48px;
+      height: 36px;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .page-jump-input:focus {
+      border-color: #52525b;
+      background: #27272a;
+    }
+
+    .page-jump-input::-webkit-inner-spin-button,
+    .page-jump-input::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
     }
   </style>
 </head>
@@ -106,7 +159,7 @@
     </div>
   </header>
 
-  <main class="max-w-5xl w-full px-6 py-12 sm:py-20 flex flex-col min-h-screen">
+  <main class="max-w-5xl w-full px-6 py-12 sm:py-20 flex flex-col min-h-screen pb-32">
     <div id="story" class="flex flex-col">
       <div id="loading-container" class="py-20 text-center flex flex-col items-center gap-4">
         <div class="w-6 h-6 border-2 border-zinc-800 border-t-zinc-400 animate-spin"></div>
@@ -116,18 +169,16 @@
   </main>
 
   <!-- Pagination Controls -->
-  <div id="pagination-controls" class="fixed bottom-0 left-0 w-full bg-[#09090b]/90 backdrop-blur-md border-t border-zinc-800 p-2 flex justify-center items-center z-50 hidden">
-    <div class="max-w-3xl w-full flex justify-between items-center px-2">
-      <button id="prev-page" class="btn-icon w-10 h-10 flex items-center justify-center">
-        <i class="fa-solid fa-arrow-left text-sm"></i>
+  <div id="pagination-controls" class="fixed bottom-0 left-0 w-full bg-[#09090b]/90 backdrop-blur-md border-t border-zinc-800 p-3 flex justify-center items-center z-50 hidden">
+    <div class="max-w-4xl w-full flex justify-center items-center gap-2 flex-wrap">
+      <button id="prev-page" class="btn-icon w-9 h-9 flex items-center justify-center">
+        <i class="fa-solid fa-angle-left text-sm"></i>
       </button>
 
-      <div class="flex flex-col items-center">
-        <span id="page-info" class="mono-label text-zinc-400">PAGE 01 / 01</span>
-      </div>
+      <div id="pagination-boxes-container" class="flex items-center gap-1.5 flex-wrap justify-center"></div>
 
-      <button id="next-page" class="btn-icon w-10 h-10 flex items-center justify-center">
-        <i class="fa-solid fa-arrow-right text-sm"></i>
+      <button id="next-page" class="btn-icon w-9 h-9 flex items-center justify-center">
+        <i class="fa-solid fa-angle-right text-sm"></i>
       </button>
     </div>
   </div>
@@ -174,18 +225,13 @@
         
         storyTitle = story.title || "Untitled Record";
 
-        // Preserve formatting: Normalize line breaks but keep structure
         const content = story.content || "";
-        
-        // We use a lighter normalization to ensure pages are split reasonably 
-        // without destroying paragraph indentations or specific line matching.
         const maxCharsPerPage = 20000; 
         storyPages = [];
         
         if (content.length <= maxCharsPerPage) {
           storyPages.push(content);
         } else {
-          // Attempt to split at a double newline to avoid cutting paragraphs
           let remaining = content;
           while (remaining.length > 0) {
             if (remaining.length <= maxCharsPerPage) {
@@ -219,9 +265,9 @@
 
     function renderPage(pageIndex) {
       const storyDiv = document.getElementById('story');
-      const pageInfo = document.getElementById('page-info');
       const prevBtn = document.getElementById('prev-page');
       const nextBtn = document.getElementById('next-page');
+      const paginationBoxesContainer = document.getElementById('pagination-boxes-container');
 
       storyDiv.innerHTML = `
         <div class="mb-12">
@@ -232,20 +278,66 @@
         <div class="story-content">${storyPages[pageIndex]}</div>
       `;
 
-      // Post-process any video tags to ensure they autoplay, loop, and are muted
       const videos = storyDiv.querySelectorAll('video');
       videos.forEach(video => {
         video.setAttribute('autoplay', '');
         video.setAttribute('loop', '');
         video.setAttribute('muted', '');
-        video.setAttribute('playsinline', ''); // Essential for autoplay on mobile
+        video.setAttribute('playsinline', '');
         video.muted = true;
         video.play().catch(e => console.log("Autoplay blocked or failed:", e));
       });
 
-      pageInfo.textContent = `PAGE ${(pageIndex + 1).toString().padStart(2, '0')} / ${storyPages.length.toString().padStart(2, '0')}`;
+      const totalPages = storyPages.length;
+      paginationBoxesContainer.innerHTML = "";
+
+      let elementsToShow = [];
+      if (totalPages <= 8) {
+        for (let i = 1; i <= totalPages; i++) elementsToShow.push(i);
+      } else {
+        const firstPart = [1, 2, 3, 4];
+        const lastPart = [totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+        elementsToShow = [...firstPart, 'search', ...lastPart];
+      }
+
+      elementsToShow.forEach(item => {
+        if (item === 'search') {
+          const jumpInput = document.createElement("input");
+          jumpInput.type = "number";
+          jumpInput.min = "1";
+          jumpInput.max = totalPages;
+          jumpInput.className = "page-jump-input";
+          jumpInput.title = `Jump to page (1-${totalPages})`;
+          jumpInput.placeholder = "...";
+          
+          jumpInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              const val = parseInt(jumpInput.value);
+              if (val >= 1 && val <= totalPages) {
+                currentPage = val - 1;
+                renderPage(currentPage);
+              } else {
+                jumpInput.value = "";
+              }
+            }
+          });
+          
+          paginationBoxesContainer.appendChild(jumpInput);
+        } else {
+          const box = document.createElement("div");
+          const pageNum = item;
+          box.className = `page-box ${pageNum === (pageIndex + 1) ? 'active' : ''}`;
+          box.textContent = pageNum.toString().padStart(2, '0');
+          box.onclick = () => {
+            currentPage = pageNum - 1;
+            renderPage(currentPage);
+          };
+          paginationBoxesContainer.appendChild(box);
+        }
+      });
+
       prevBtn.disabled = pageIndex === 0;
-      nextBtn.disabled = pageIndex === storyPages.length - 1;
+      nextBtn.disabled = pageIndex === totalPages - 1;
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }

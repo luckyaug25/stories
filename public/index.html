@@ -41,7 +41,6 @@
       z-index: 9999;
     }
 
-    /* Hide loader via class for session handling */
     #loader.hidden-session {
       display: none !important;
     }
@@ -53,7 +52,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      border-radius: 50% !important; /* Forces circular shape */
+      border-radius: 50% !important;
       overflow: hidden;
       border: 1px solid rgba(255, 255, 255, 0.05);
     }
@@ -179,6 +178,59 @@
       opacity: 0.2;
       cursor: not-allowed;
     }
+
+    /* Individual Box Style for Pagination */
+    .page-box {
+      background: #18181b;
+      border: 1px solid var(--border);
+      color: #a1a1aa;
+      min-width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .page-box:hover {
+      border-color: #52525b;
+      color: #f4f4f5;
+      background: #27272a;
+    }
+
+    .page-box.active {
+      background: #27272a;
+      border-color: #71717a;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .page-jump-input {
+      background: #18181b;
+      border: 1px solid var(--border);
+      color: #f4f4f5;
+      width: 48px;
+      height: 36px;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .page-jump-input:focus {
+      border-color: #52525b;
+      background: #27272a;
+    }
+
+    .page-jump-input::-webkit-inner-spin-button,
+    .page-jump-input::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
   </style>
 </head>
 
@@ -245,14 +297,14 @@
     </div>
 
     <!-- PAGINATION -->
-    <div id="pagination" class="hidden mt-16 pt-8 border-t border-zinc-900 flex justify-center items-center gap-1">
-      <button id="btn-prev" class="pagination-btn btn-icon w-10 h-10 flex items-center justify-center">
+    <div id="pagination" class="hidden mt-16 pt-8 border-t border-zinc-900 flex justify-center items-center gap-2 flex-wrap">
+      <button id="btn-prev" class="pagination-btn btn-icon w-9 h-9 flex items-center justify-center">
         <i class="fa-solid fa-angle-left"></i>
       </button>
-      <div class="px-6 h-10 border border-zinc-800 flex items-center">
-         <span id="page-info" class="mono-label text-zinc-400">PAGE 01 / 01</span>
-      </div>
-      <button id="btn-next" class="pagination-btn btn-icon w-10 h-10 flex items-center justify-center">
+      
+      <div id="pagination-boxes-container" class="flex items-center gap-1.5 flex-wrap justify-center"></div>
+
+      <button id="btn-next" class="pagination-btn btn-icon w-9 h-9 flex items-center justify-center">
         <i class="fa-solid fa-angle-right"></i>
       </button>
     </div>
@@ -266,7 +318,7 @@
 
   const prevBtn = document.getElementById("btn-prev");
   const nextBtn = document.getElementById("btn-next");
-  const pageInfo = document.getElementById("page-info");
+  const paginationBoxesContainer = document.getElementById("pagination-boxes-container");
   
   const searchInput = document.getElementById("search-input");
   const searchInputMobile = document.getElementById("search-input-mobile");
@@ -357,7 +409,58 @@
   function updatePaginationUI() {
     const totalPages = Math.ceil(filteredStories.length / perPage);
     pagination.classList.toggle("hidden", totalPages <= 1);
-    pageInfo.textContent = `PAGE ${currentPage.toString().padStart(2, '0')} / ${Math.max(1, totalPages).toString().padStart(2, '0')}`;
+    
+    paginationBoxesContainer.innerHTML = "";
+    
+    if (totalPages <= 1) return;
+
+    let elementsToShow = [];
+    if (totalPages <= 8) {
+      for (let i = 1; i <= totalPages; i++) elementsToShow.push(i);
+    } else {
+      const firstPart = [1, 2, 3, 4];
+      const lastPart = [totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+      elementsToShow = [...firstPart, 'search', ...lastPart];
+    }
+
+    elementsToShow.forEach(item => {
+      if (item === 'search') {
+        // Render search/jump box in the middle
+        const jumpInput = document.createElement("input");
+        jumpInput.type = "number";
+        jumpInput.min = "1";
+        jumpInput.max = totalPages;
+        jumpInput.className = "page-jump-input";
+        jumpInput.title = `Jump to page (1-${totalPages})`;
+        jumpInput.placeholder = "...";
+        
+        jumpInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            const val = parseInt(jumpInput.value);
+            if (val >= 1 && val <= totalPages) {
+              currentPage = val;
+              render();
+              window.scrollTo(0, 0);
+            } else {
+              jumpInput.value = "";
+            }
+          }
+        });
+        
+        paginationBoxesContainer.appendChild(jumpInput);
+      } else {
+        const box = document.createElement("div");
+        box.className = `page-box ${item === currentPage ? 'active' : ''}`;
+        box.textContent = item.toString().padStart(2, '0');
+        box.onclick = () => {
+          currentPage = item;
+          render();
+          window.scrollTo(0, 0);
+        };
+        paginationBoxesContainer.appendChild(box);
+      }
+    });
+
     prevBtn.disabled = currentPage <= 1;
     nextBtn.disabled = currentPage >= totalPages;
   }
@@ -372,14 +475,12 @@
     const hasSeenLoader = sessionStorage.getItem("loader_viewed");
 
     if (hasSeenLoader) {
-      // Skip animation
       loader.remove();
       document.body.style.overflow = "auto";
-      main.classList.add("no-transition"); // Prevent initial fade-in lag
+      main.classList.add("no-transition");
       main.classList.add("visible");
       fetchStories();
     } else {
-      // Show animation for the first time
       setTimeout(() => {
         loader.style.opacity = "0";
         setTimeout(() => {
